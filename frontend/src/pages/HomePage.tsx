@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Filter, ChevronDown } from 'lucide-react';
+import { Search, Filter, ChevronDown, ChevronUp, Bookmark, Badge, Share, Flag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
     Select,
@@ -12,13 +12,14 @@ import {
     SelectValue
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
+import { Card, CardContent } from '@/components/ui/card';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 export default function HomePage() {
     const navigate = useNavigate();
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedSort, setSelectedSort] = useState('newest');
     const [selectedCategories, setSelectedCategories] = useState([]);
-    const [showFilters, setShowFilters] = useState(false);
     const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
 
     const sortOptions = [
@@ -62,6 +63,50 @@ export default function HomePage() {
         setSearchQuery('');
     };
 
+    const questions = [
+        {
+            id: 1,
+            title: "How to implement JWT authentication in React?",
+            description:
+                "I'm trying to implement JWT authentication in my React application but facing issues with token storage and validation...",
+            author: "john_dev",
+            avatar: "/placeholder.svg?height=32&width=32",
+            votes: 15,
+            answers: 3,
+            views: 127,
+            tags: ["React", "JWT", "Authentication"],
+            timeAgo: "2 hours ago",
+            isAnswered: true,
+        },
+        {
+            id: 2,
+            title: "Best practices for state management in large React apps?",
+            description:
+                "What are the recommended patterns for managing complex state in large-scale React applications? Should I use Redux, Zustand, or Context API?",
+            author: "sarah_codes",
+            avatar: "/placeholder.svg?height=32&width=32",
+            votes: 23,
+            answers: 7,
+            views: 245,
+            tags: ["React", "State Management", "Redux", "Zustand"],
+            timeAgo: "4 hours ago",
+            isAnswered: true,
+        },
+        {
+            id: 3,
+            title: "How to optimize database queries in Node.js?",
+            description:
+                "My Node.js application is experiencing slow database queries. What are some optimization techniques I can implement?",
+            author: "mike_backend",
+            avatar: "/placeholder.svg?height=32&width=32",
+            votes: 8,
+            answers: 2,
+            views: 89,
+            tags: ["Node.js", "Database", "Performance"],
+            timeAgo: "6 hours ago",
+            isAnswered: false,
+        },
+    ]
     return (
         <div className="space-y-4">
             {/* Search Bar and Ask Question Button */}
@@ -196,7 +241,65 @@ export default function HomePage() {
                 )
             }
             <div>
-                
+                {/* Questions List */}
+                <div className="space-y-4">
+                    {questions.map((question) => (
+                        <Card key={question.id} className="bg-foreground/5 border-foreground/10 hover:border-gray-700 transition-colors">
+                            <CardContent className="p-6">
+                                <div className="flex gap-4">
+                                    {/* Vote and Stats */}
+                                    <div className="flex flex-col items-center space-y-2 text-sm text-foreground/50 min-w-[60px]">
+                                        <div className="text-center">
+                                            <div className="font-semibold text-foreground">{question.votes}</div>
+                                            <div>votes</div>
+                                        </div>
+                                        <div
+                                            className={`text-center px-2 py-1 rounded ${question.isAnswered ? "bg-green-600 text-white" : "border border-gray-600"}`}
+                                        >
+                                            <div className="font-semibold">{question.answers}</div>
+                                            <div className="text-xs">answers</div>
+                                        </div>
+                                        <div className="text-center">
+                                            <div className="font-semibold text-foreground">{question.views}</div>
+                                            <div>views</div>
+                                        </div>
+                                    </div>
+
+                                    {/* Question Content */}
+                                    <div className="flex-1">
+                                        <h3 onClick={() => { }} className="text-lg font-semibold text-blue-700 hover:text-blue-600 mb-2 cursor-pointer">
+                                            {question.title}
+                                        </h3>
+
+                                        <p className="text-foreground/50 mb-4 line-clamp-2">{question.description}</p>
+
+                                        <div className="flex flex-wrap gap-2 mb-4">
+                                            {question.tags.map((tag) => (
+                                                <div
+                                                    key={tag}
+                                                    className="bg-blue-300/20 rounded-md px-4 text-sm text-blue-600 hover:bg-blue-500/30"
+                                                >
+                                                    {tag}
+                                                </div>
+                                            ))}
+                                        </div>
+
+                                        <div className="flex items-center justify-between text-sm text-gray-400">
+                                            <div className="flex items-center space-x-2">
+                                                <Avatar className="h-6 w-6">
+                                                    <AvatarImage src={question.avatar || "/placeholder.svg"} />
+                                                    <AvatarFallback>{question.author[0].toUpperCase()}</AvatarFallback>
+                                                </Avatar>
+                                                <span>{question.author}</span>
+                                            </div>
+                                            <span>{question.timeAgo}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
             </div>
         </div >
     );
