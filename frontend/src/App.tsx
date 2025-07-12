@@ -30,19 +30,6 @@ export default function App() {
                   <Route path="/:id" element={<ProfilePage />} />
                 </Routes>
               </SocketProvider>
-              {/* <Routes>
-                <Route path="/" element={<Navigate to="/dashboard" />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/projects" element={<Projects />} />
-                <Route path="/billing" element={<Billing />} />
-                <Route path="/invoices" element={<Invoices />} />
-                <Route path="/clients" element={<Clients />} />
-                <Route path="/reports" element={<Reports />} />
-                <Route path="/payments" element={<Payments />} />
-                <Route path="/login" element={<LoginForm />} />
-                <Route path="/signup" element={<Signup />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes> */}
             </Layout>
           </Router>
           <Toaster />

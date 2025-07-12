@@ -1,68 +1,103 @@
 "use client"
 
-import { motion } from "framer-motion"
-import { ChevronUp, ChevronDown } from 'lucide-react'
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { useAuth } from "@/contexts/authContext"
+import { motion } from "framer-motion";
+import { ChevronUp, ChevronDown } from 'lucide-react';
+import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/authContext";
 
-interface VotingButtonsProps {
-	questionId: string
-	initialVotes: string[]
-	userId?: string
-	onVote?: (questionId: string, voteType: 'up' | 'down') => void
+interface Vote {
+	user: string;
+	vote: number; // 1 = upvote, -1 = downvote
+	_id?: string;
 }
 
-export default function VotingButtons({ questionId, initialVotes, userId, onVote }: VotingButtonsProps) {
-	const [votes, setVotes] = useState(initialVotes)
-	const [userVote, setUserVote] = useState<'up' | 'down' | null>(null)
+interface VotingButtonsProps {
+	questionId: string;
+	initialVotes: Vote[];
+	userId?: string;
+	onVote?: (questionId: string, voteType: 'up' | 'down') => void;
+}
+
+export default function VotingButtons({
+	questionId,
+	initialVotes,
+	userId,
+	onVote,
+}: VotingButtonsProps) {
+	const [votes, setVotes] = useState<Vote[]>(initialVotes || []);
+	const [userVote, setUserVote] = useState<'up' | 'down' | null>(null);
 	const { token } = useAuth();
 
+	// Detect existing vote on mount
+	useEffect(() => {
+		if (!userId) return;
+
+		const existing = initialVotes.find((v) => v.user === userId);
+		if (existing?.vote === 1) setUserVote('up');
+		else if (existing?.vote === -1) setUserVote('down');
+		else setUserVote(null);
+	}, [initialVotes, userId]);
+
+	const upvotes = votes.filter((v) => v.vote === 1).length;
+	const downvotes = votes.filter((v) => v.vote === -1).length;
+
 	const handleVote = async (voteType: 'up' | 'down') => {
-		if (!userId) return
+		if (!userId) return;
 
-		const newUserVote = userVote === voteType ? null : voteType
-		setUserVote(newUserVote)
+		const newVote: 'up' | 'down' | null = userVote === voteType ? null : voteType;
+		setUserVote(newVote);
+		await handleVoteChange(newVote, userId, questionId);
 
-		handleVoteChange(voteType, userId, questionId);
+		let updatedVotes = votes.filter((v) => v.user !== userId);
 
-		let newVotes = [...votes]
-		if (userVote === 'up') {
-			newVotes = newVotes.filter(v => v !== userId)
-		} else if (userVote === 'down') {
-			newVotes = newVotes.filter(v => v !== userId)
+		if (newVote) {
+			updatedVotes.push({
+				user: userId,
+				vote: newVote === 'up' ? 1 : -1,
+			});
 		}
 
-		if (newUserVote === 'up') {
-			newVotes.push(userId)
-		} else if (newUserVote === 'down') {
-			newVotes = newVotes.filter(v => v !== userId)
-		}
+		setVotes(updatedVotes);
+		onVote?.(questionId, voteType);
+	};
 
-		setVotes(newVotes)
-		onVote?.(questionId, voteType)
-	}
+	const handleVoteChange = async (
+		type: 'up' | 'down' | null,
+		userId: string,
+		questionId: string
+	): Promise<void> => {
+		try {
+			const vType = type === 'up' ? 1 : type === 'down' ? -1 : 0;
 
-	const handleVoteChange = async (type: string, userId: string, questionId: string) => {
-		let vtype = type == "up" ? 1 : -1;
-		await fetch(`${import.meta.env.VITE_APP_API_URL}/questions/${questionId}/vote`, {
-			method: "POST",
-			body: JSON.stringify({
-				vType: vtype,
-				userId: userId
+			const response = await fetch(`${import.meta.env.VITE_APP_API_URL}/questions/${questionId}/vote`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					Authorization: `Bearer ${token}`,
+				},
+				body: JSON.stringify({
+					vType,
+					userId,
+				}),
+			});
+
+			const result = await response.json();
+
+			if (!response.ok) {
+				console.error('❌ Vote failed:', result.message || 'Unknown error');
+				return;
 			}
-			)
-		}).then((res) => res.json());
-	}
 
-	const voteCount = votes.length
+			console.log('✅ Vote response:', result);
+		} catch (error) {
+			console.error('❌ Error while voting:', error);
+		}
+	};
 
 	return (
 		<div className="flex flex-col items-center space-y-2 min-w-[60px]">
-			<motion.div
-				whileHover={{ scale: 1.1 }}
-				whileTap={{ scale: 0.9 }}
-			>
+			<motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
 				<Button
 					variant="ghost"
 					size="sm"
@@ -77,19 +112,20 @@ export default function VotingButtons({ questionId, initialVotes, userId, onVote
 			</motion.div>
 
 			<motion.div
-				key={voteCount}
+				key={upvotes - downvotes}
 				initial={{ scale: 1.2 }}
 				animate={{ scale: 1 }}
-				className={`text-lg font-bold transition-colors duration-200 ${voteCount > 0 ? 'text-green-600' : voteCount < 0 ? 'text-red-600' : 'text-muted-foreground'
+				className={`text-lg font-bold transition-colors duration-200 ${upvotes - downvotes > 0
+					? 'text-green-600'
+					: upvotes - downvotes < 0
+						? 'text-red-600'
+						: 'text-muted-foreground'
 					}`}
 			>
-				{voteCount}
+				{upvotes - downvotes}
 			</motion.div>
 
-			<motion.div
-				whileHover={{ scale: 1.1 }}
-				whileTap={{ scale: 0.9 }}
-			>
+			<motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
 				<Button
 					variant="ghost"
 					size="sm"
@@ -103,5 +139,5 @@ export default function VotingButtons({ questionId, initialVotes, userId, onVote
 				</Button>
 			</motion.div>
 		</div>
-	)
+	);
 }
