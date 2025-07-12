@@ -9,8 +9,9 @@ export default function LoginForm() {
   const navigate = useNavigate();
   const [isDark, setIsDark] = useState(false);
   const [formData, setFormData] = useState({
-    email: '',
+    username: '',
     password: '',
+    role: 'client'
   });
   const [isLoading, setIsLoading] = useState(false);
 
@@ -28,41 +29,37 @@ export default function LoginForm() {
 
   const handleSubmit = async () => {
     setIsLoading(true);
-    console.log(import.meta.env.VITE_APP_API_URL);
-    
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_APP_API_URL}/user/login`, {
+      const fetchUrl = `${import.meta.env.VITE_APP_API_URL}/api/auth/login`;
+      const response = await fetch(fetchUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(formData)
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        login(data?.data, data?.token);
+        login(data?.user, data?.token);
         toast({
           title: "Success",
           description: "Login successfully.",
           variant: "success",
-        });
+        })
         navigate("/dashboard");
       } else {
         toast({
           title: "Error",
-          description: data?.message || "Login failed",
+          description: "Invalid Credentials",
           variant: "destructive",
-        });
+        })
       }
     } catch (error) {
-      toast({
-        title: "Network Error",
-        description: "Unable to reach the server.",
-        variant: "destructive",
-      });
+      console.error('Network error:', error);
+      alert('Network error occurred. Check console for details.');
     } finally {
       setIsLoading(false);
     }
@@ -90,7 +87,7 @@ export default function LoginForm() {
                     </div>
 
                     {/* Role Selection */}
-                    {/* <div className="grid gap-2">
+                    <div className="grid gap-2">
                       <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                         Select Role
                       </label>
@@ -100,38 +97,41 @@ export default function LoginForm() {
                             type="radio"
                             name="role"
                             value="owner"
-                            checked={formData.role === 'admin'}
+                            checked={formData.role === 'owner'}
                             onChange={handleInputChange}
                             className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
                           />
-                          <span className="text-sm text-gray-700 dark:text-gray-300">Admin</span>
+                          <span className="text-sm text-gray-700 dark:text-gray-300">Owner</span>
                         </label>
                         <label className="flex items-center gap-2 cursor-pointer">
                           <input
                             type="radio"
                             name="role"
                             value="client"
-                            checked={formData.role === 'user'}
+                            checked={formData.role === 'client'}
                             onChange={handleInputChange}
                             className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
                           />
-                          <span className="text-sm text-gray-700 dark:text-gray-300">User</span>
+                          <span className="text-sm text-gray-700 dark:text-gray-300">Client</span>
                         </label>
                       </div>
-                    </div> */}
+                    </div>
 
-                    {/* Email Field */}
+                    {/* Username Field */}
                     <div className="grid gap-2">
-                      <label htmlFor="email" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Email
+                      <label
+                        htmlFor="username"
+                        className="text-sm font-medium text-gray-700 dark:text-gray-300"
+                      >
+                        Username
                       </label>
                       <input
-                        id="email"
-                        name="email"
-                        type="email"
-                        placeholder="example@email.com"
+                        id="username"
+                        name="username"
+                        type="text"
+                        placeholder="username"
                         required
-                        value={formData.email}
+                        value={formData.username}
                         onChange={handleInputChange}
                         className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:focus:ring-blue-400/20"
                       />

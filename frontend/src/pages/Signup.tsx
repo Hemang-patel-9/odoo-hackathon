@@ -4,32 +4,27 @@ import type React from "react"
 
 import { motion, AnimatePresence } from "framer-motion"
 import { useState, useRef } from "react"
-import { User, Mail, Phone, MapPin, Eye, EyeOff, Upload, Check, X, Camera, Building2 } from "lucide-react"
+import { User, Mail, Eye, EyeOff, Upload, Check, X, Camera, Building2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useToast } from "@/hooks/use-toast"
 import { cn } from "@/lib/utils"
 
 interface FormData {
-	username: string
+	name: string
+	email: string
 	password: string
 	rePassword: string
-	email: string
-	phone: string
-	address: string
 	profileImage: File | null
 }
 
 interface ValidationErrors {
-	username?: string
+	name?: string
 	password?: string
 	rePassword?: string
 	email?: string
-	phone?: string
-	address?: string
 	profileImage?: string
 }
 
@@ -50,26 +45,24 @@ export default function Signup() {
 	const [imagePreview, setImagePreview] = useState<string | null>(null)
 
 	const [formData, setFormData] = useState<FormData>({
-		username: "",
+		name: "",
+		email: "",
 		password: "",
 		rePassword: "",
-		email: "",
-		phone: "",
-		address: "",
 		profileImage: null,
 	})
+	
 
 	const [errors, setErrors] = useState<ValidationErrors>({})
 	const [touched, setTouched] = useState<Record<string, boolean>>({})
 
-	const validateUsername = (username: string): string | undefined => {
-		if (!username) return "Username is required"
-		if (username !== username.toLowerCase()) return "Username must be lowercase"
-		if (username.length < 5) return "Username must be at least 5 characters"
-		if (username.length > 100) return "Username must not exceed 100 characters"
-		if (!/^[a-z0-9_]+$/.test(username)) return "Username can only contain lowercase letters, numbers, and underscores"
+	const validateName = (name: string): string | undefined => {
+		if (!name) return "Name is required"
+		if (name.length < 3) return "Name must be at least 3 characters"
+		if (name.length > 100) return "Name must not exceed 100 characters"
+		if (!/^[a-zA-Z ]+$/.test(name)) return "Name can only contain letters and spaces"
 		return undefined
-	}
+	}	
 
 	const validatePassword = (password: string): string | undefined => {
 		if (!password) return "Password is required"
@@ -87,28 +80,13 @@ export default function Signup() {
 		return undefined
 	}
 
-	const validatePhone = (phone: string): string | undefined => {
-		if (!phone) return "Phone number is required"
-		const phoneRegex = /^\+?[1-9]\d{1,14}$/
-		if (!phoneRegex.test(phone)) return "Please enter a valid phone number with country code (max 14 digits)"
-		if (phone.length > 14) return "Phone number cannot exceed 14 characters"
-		return undefined
-	}
-
-	const validateAddress = (address: string): string | undefined => {
-		if (!address) return "Address is required"
-		if (address.length < 10) return "Please provide a complete address"
-		return undefined
-	}
 
 	const validateForm = (): boolean => {
 		const newErrors: ValidationErrors = {}
 
-		newErrors.username = validateUsername(formData.username)
+		newErrors.name = validateName(formData.name)
 		newErrors.password = validatePassword(formData.password)
 		newErrors.email = validateEmail(formData.email)
-		newErrors.phone = validatePhone(formData.phone)
-		newErrors.address = validateAddress(formData.address)
 
 		if (formData.password !== formData.rePassword) {
 			newErrors.rePassword = "Passwords do not match"
@@ -117,6 +95,7 @@ export default function Signup() {
 		setErrors(newErrors)
 		return Object.values(newErrors).every((error) => !error)
 	}
+	
 
 	const handleInputChange = (field: keyof FormData, value: string) => {
 		setFormData((prev) => ({ ...prev, [field]: value }))
@@ -125,8 +104,8 @@ export default function Signup() {
 		// Real-time validation
 		const newErrors = { ...errors }
 		switch (field) {
-			case "username":
-				newErrors.username = validateUsername(value)
+			case "name":
+				newErrors.name = validateName(value)
 				break
 			case "password":
 				newErrors.password = validatePassword(value)
@@ -141,12 +120,6 @@ export default function Signup() {
 				break
 			case "email":
 				newErrors.email = validateEmail(value)
-				break
-			case "phone":
-				newErrors.phone = validatePhone(value)
-				break
-			case "address":
-				newErrors.address = validateAddress(value)
 				break
 		}
 		setErrors(newErrors)
@@ -197,29 +170,56 @@ export default function Signup() {
 			return
 		}
 
-		// Simulate API call
-		await new Promise((resolve) => setTimeout(resolve, 2000))
+		try {
+			// Prepare form data
+			const form = new FormData()
+			form.append("name", formData.name)
+			form.append("email", formData.email)
+			form.append("password", formData.password)
+			if (formData.profileImage) {
+				form.append("avatar", formData.profileImage)
+			}
 
-		// Console log all form data
-		console.log("=== SIGNUP FORM DATA ===")
-		console.log("Username:", formData.username)
-		console.log("Password:", formData.password)
-		console.log("Email:", formData.email)
-		console.log("Phone:", formData.phone)
-		console.log("Address:", formData.address)
-		console.log("Profile Image:", formData.profileImage)
-		console.log("Profile Image Name:", formData.profileImage?.name)
-		console.log("Profile Image Size:", formData.profileImage?.size)
-		console.log("Profile Image Type:", formData.profileImage?.type)
-		console.log("========================")
+			const res = await fetch(`${ import.meta.env.VITE_APP_API_URL }/user/signup`, {
+				method: "POST",
+				body: form, // no need to set headers for FormData; fetch sets it automatically
+			})
 
-		setIsSubmitting(false)
-		toast({
-			title: "Account Created Successfully!",
-			description: "Welcome to XYZ Management System.",
-			variant: "success",
-		})
+			const result = await res.json()
+
+			if (!res.ok) {
+				throw new Error(result.message || "Signup failed")
+			}
+
+			// Success
+			toast({
+				title: "Account Created Successfully!",
+				description: result.message,
+				variant: "success",
+			})
+
+			// Optional: Reset form or navigate
+			setFormData({
+				name: "",
+				email: "",
+				password: "",
+				rePassword: "",
+				profileImage: null,
+			})
+			setImagePreview(null)
+			setTouched({})
+			setErrors({})
+		} catch (error: any) {
+			toast({
+				title: "Signup Failed",
+				description: error.message || "An error occurred during signup",
+				variant: "destructive",
+			})
+		} finally {
+			setIsSubmitting(false)
+		}
 	}
+	
 
 	const getFieldError = (field: keyof FormData) => {
 		return touched[field] ? errors[field] : undefined
@@ -303,26 +303,27 @@ export default function Signup() {
 									transition={{ duration: 0.5, delay: 0.4 }}
 									className="space-y-2"
 								>
-									<Label htmlFor="username">Username *</Label>
+									<Label htmlFor="name">Full Name *</Label>
 									<div className="relative">
 										<User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
 										<Input
-											id="username"
-											value={formData.username}
-											onChange={(e) => handleInputChange("username", e.target.value.toLowerCase())}
-											placeholder="Enter username (lowercase)"
-											className={cn("pl-10", getFieldError("username") && "border-destructive")}
+											id="name"
+											value={formData.name}
+											onChange={(e) => handleInputChange("name", e.target.value)}
+											placeholder="Enter your full name"
+											className={cn("pl-10", getFieldError("name") && "border-destructive")}
 										/>
 									</div>
+
 									<AnimatePresence>
-										{getFieldError("username") && (
+										{getFieldError("name") && (
 											<motion.p
 												initial={{ opacity: 0, height: 0 }}
 												animate={{ opacity: 1, height: "auto" }}
 												exit={{ opacity: 0, height: 0 }}
 												className="text-sm text-destructive"
 											>
-												{getFieldError("username")}
+												{getFieldError("name")}
 											</motion.p>
 										)}
 									</AnimatePresence>
@@ -361,37 +362,6 @@ export default function Signup() {
 									</AnimatePresence>
 								</motion.div>
 
-								{/* Phone */}
-								<motion.div
-									initial={{ opacity: 0, x: -20 }}
-									animate={{ opacity: 1, x: 0 }}
-									transition={{ duration: 0.5, delay: 0.6 }}
-									className="space-y-2"
-								>
-									<Label htmlFor="phone">Phone Number *</Label>
-									<div className="relative">
-										<Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-										<Input
-											id="phone"
-											value={formData.phone}
-											onChange={(e) => handleInputChange("phone", e.target.value)}
-											placeholder="+1234567890 (with country code)"
-											className={cn("pl-10", getFieldError("phone") && "border-destructive")}
-										/>
-									</div>
-									<AnimatePresence>
-										{getFieldError("phone") && (
-											<motion.p
-												initial={{ opacity: 0, height: 0 }}
-												animate={{ opacity: 1, height: "auto" }}
-												exit={{ opacity: 0, height: 0 }}
-												className="text-sm text-destructive"
-											>
-												{getFieldError("phone")}
-											</motion.p>
-										)}
-									</AnimatePresence>
-								</motion.div>
 
 								{/* Password */}
 								<motion.div
@@ -490,39 +460,7 @@ export default function Signup() {
 									</AnimatePresence>
 								</motion.div>
 
-								{/* Address */}
-								<motion.div
-									initial={{ opacity: 0, x: -20 }}
-									animate={{ opacity: 1, x: 0 }}
-									transition={{ duration: 0.5, delay: 0.9 }}
-									className="space-y-2"
-								>
-									<Label htmlFor="address">Complete Address *</Label>
-									<div className="relative">
-										<MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-										<Textarea
-											id="address"
-											value={formData.address}
-											onChange={(e) => handleInputChange("address", e.target.value)}
-											placeholder="Enter your complete address (street, city, state, country, postal code)"
-											className={cn("pl-10 min-h-[80px]", getFieldError("address") && "border-destructive")}
-											rows={3}
-										/>
-									</div>
-									<AnimatePresence>
-										{getFieldError("address") && (
-											<motion.p
-												initial={{ opacity: 0, height: 0 }}
-												animate={{ opacity: 1, height: "auto" }}
-												exit={{ opacity: 0, height: 0 }}
-												className="text-sm text-destructive"
-											>
-												{getFieldError("address")}
-											</motion.p>
-										)}
-									</AnimatePresence>
-								</motion.div>
-
+						
 								{/* Submit Button */}
 								<motion.div
 									initial={{ opacity: 0, y: 20 }}
