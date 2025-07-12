@@ -42,7 +42,17 @@ export default function HomePage() {
         { value: 'health', label: 'Health', emoji: '🏥' },
         { value: 'finance', label: 'Finance', emoji: '💰' },
         { value: 'lifestyle', label: 'Lifestyle', emoji: '🌟' },
-        { value: 'gaming', label: 'Gaming', emoji: '🎮' }
+        { value: 'gaming', label: 'Gaming', emoji: '🎮' },
+        { value: 'javascript', label: 'JavaScript', emoji: '🟨' },
+        { value: 'typescript', label: 'TypeScript', emoji: '🔷' },
+        { value: 'react', label: 'React', emoji: '⚛️' },
+        { value: 'nodejs', label: 'Node.js', emoji: '🟩' },
+        { value: 'express', label: 'Express', emoji: '🚀' },
+        { value: 'mongodb', label: 'MongoDB', emoji: '🍃' },
+        { value: 'html', label: 'HTML', emoji: '📄' },
+        { value: 'css', label: 'CSS', emoji: '🎨' },
+        { value: 'python', label: 'Python', emoji: '🐍' },
+        { value: 'mysql', label: 'MySQL', emoji: '🗃️' }
     ];
 
     const handleCategoryToggle = (categoryValue: string) => {
