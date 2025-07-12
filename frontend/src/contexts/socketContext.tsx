@@ -2,7 +2,7 @@ import React, { createContext, useContext, useEffect, useRef, useState } from 'r
 import { io, Socket } from 'socket.io-client';
 
 interface ServerToClientEvents {
-	'new-notification': (data: any) => void;
+	'get-notification': (data: any) => void;
 }
 
 interface ClientToServerEvents {

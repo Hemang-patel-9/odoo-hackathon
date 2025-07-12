@@ -1,10 +1,10 @@
 const User = require("../model/user.model");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const { upload } = require("../middleware/upload.middleware.js"); 
+const { upload } = require("../middleware/upload.middleware.js");
 
 
-const JWT_SECRET = process.env.JWT_SECRET; 
+const JWT_SECRET = process.env.JWT_SECRET;
 
 // Signup controller
 const signup = (req, res) => {
@@ -66,7 +66,7 @@ const login = async (req, res) => {
         res.status(200).json({
             message: "Login successful",
             token,
-            data: { id: user._id, name: user.name, role: user.role },
+            data: { id: user._id, name: user.name, role: user.role, email: user.email, avatar: user.avatar },
         });
     } catch (error) {
         res.status(500).json({ message: "Error during login", error: error.message });
@@ -109,10 +109,23 @@ const unbanUser = async (req, res) => {
     }
 };
 
+const getUserById = async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id).select("-password"); // exclude password
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        res.status(200).json({ data: user });
+    } catch (error) {
+        res.status(500).json({ message: "Error fetching user", error: error.message });
+    }
+};
+
 module.exports = {
     signup,
     login,
     getAllUsers,
     banUser,
     unbanUser,
+    getUserById
 };
