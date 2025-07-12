@@ -11,6 +11,7 @@ const UserSchema = new mongoose.Schema(
             default: "user",
         },
         banned: { type: Boolean, default: false },
+        avatar: { type: String }, 
     },
     { timestamps: true }
 );
