@@ -1,7 +1,7 @@
 const Answer = require("../model/answer.model.js");
 const Question = require("../model/question.model.js");
 const Notification = require("../model/notification.model.js");
-
+const { onlineUsers } = require("../socket.js");
 
 // ✅ Post an answer
 const postAnswer = async (req, res) => {
@@ -19,14 +19,14 @@ const postAnswer = async (req, res) => {
         if (question.author.toString() !== author) {
             const notif = new Notification({
                 user: question.author,
-                message: "Someone answered your question.",
+                message: content,
                 question: questionId,
                 type: "answer",
             });
             await notif.save();
         }
 
-        res.status(201).json({ message: "Answer posted", data: newAnswer });
+        res.status(201).json({ message: "Answer posted", data: newAnswer, qauth: question.author.toString() });
     } catch (error) {
         res.status(500).json({ message: "Error posting answer", error: error.message });
     }

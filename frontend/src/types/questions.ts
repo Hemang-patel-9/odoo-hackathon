@@ -1,17 +1,22 @@
 export interface Question {
-    _id: string;
-    title: string;
-    description: string;
-    tags: string[];
+    _id: string
+    title: string
+    description: string
+    tags: string[]
     author: {
-        name: string;
-        email: string;
-    };
-    acceptedAnswer?: string;
-    votes: {
-        user: string;
-        vote: 1 | -1;
-    }[];
-    createdAt: string;
-    updatedAt: string;
+        _id: string
+        name: string
+        avatar?: string
+    }
+    votes: string[]
+    answers: any[]
+    createdAt: string
+    updatedAt: string
+    answerCount: number
+}
+
+export interface User {
+    id: string
+    name: string
+    avatar?: string
 }

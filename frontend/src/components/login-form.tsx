@@ -16,6 +16,15 @@ export default function LoginForm() {
 
   useEffect(() => {
     setIsDark(false);
+    const user = localStorage.getItem("user");
+    if (user) {
+      toast({
+        title: "Success",
+        description: "Already Logged In.",
+        variant: "success",
+      });
+      navigate("/");
+    }
   }, []);
 
   const handleInputChange = (e: any) => {
@@ -29,7 +38,6 @@ export default function LoginForm() {
   const handleSubmit = async () => {
     setIsLoading(true);
     console.log(import.meta.env.VITE_APP_API_URL);
-    
 
     try {
       const response = await fetch(`${import.meta.env.VITE_APP_API_URL}/user/login`, {

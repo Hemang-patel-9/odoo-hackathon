@@ -4,15 +4,18 @@ import { ConfirmationProvider } from "./contexts/confirmation-context"
 import Layout from "./components/layout"
 import { Toaster } from "./components/ui/toaster"
 import LoginForm from "./components/login-form"
-import NotFound from "./pages/NotFound"
 import Signup from "./pages/Signup"
 import { AuthProvider } from "./contexts/authContext";
 import HomePage from "./pages/HomePage"
 import AskQuestionPage from "./pages/AskQuestionPage"
 import OneQuestion from "./pages/OneQuestion"
 import ProfilePage from "./pages/ProfilePage"
+<<<<<<< HEAD
 import EditProfile from "./pages/Profile"
 import AdminPanel from "./pages/AdminPage"
+=======
+import { SocketProvider } from "./contexts/socketContext"
+>>>>>>> 23bd57a2b87174f7c19f65cf3ecd767b1e81b026
 
 export default function App() {
   return (
@@ -21,6 +24,7 @@ export default function App() {
         <AuthProvider>
           <Router>
             <Layout>
+<<<<<<< HEAD
               <Routes>
                 <Route path="/" element={<Navigate to="/homepage" />} />
                 <Route path="/homepage" element={<HomePage />} />
@@ -32,6 +36,19 @@ export default function App() {
                 <Route path="/profile" element={<EditProfile />} />
                 <Route path="/admin/:id" element={<AdminPanel />} />
               </Routes>
+=======
+              <SocketProvider>
+                <Routes>
+                  <Route path="/" element={<Navigate to="/homepage" />} />
+                  <Route path="/homepage" element={<HomePage />} />
+                  <Route path="/ask" element={<AskQuestionPage />} />
+                  <Route path="/login" element={<LoginForm />} />
+                  <Route path="/signup" element={<Signup />} />
+                  <Route path="/question/:id" element={<OneQuestion />} />
+                  <Route path="/:id" element={<ProfilePage />} />
+                </Routes>
+              </SocketProvider>
+>>>>>>> 23bd57a2b87174f7c19f65cf3ecd767b1e81b026
               {/* <Routes>
                 <Route path="/" element={<Navigate to="/dashboard" />} />
                 <Route path="/dashboard" element={<Dashboard />} />

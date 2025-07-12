@@ -1,6 +1,6 @@
 const Question = require("../model/question.model.js");
 const Notification = require("../model/notification.model.js");
-
+const Answer = require("../model/answer.model.js");
 
 // ✅ Create a new question
 const createQuestion = async (req, res) => {
@@ -22,12 +22,27 @@ const createQuestion = async (req, res) => {
 };
 
 // ✅ Get all questions
+// ✅ Get all questions with answer count
 const getAllQuestions = async (req, res) => {
     try {
+        // Find all questions and populate the author field
         const questions = await Question.find()
             .sort({ createdAt: -1 })
-            .populate("author", "name email");
-        res.status(200).json({ message: "Questions fetched successfully", data: questions });
+            .populate("author", "name email")
+            .exec(); // .exec() is optional but it's good practice to use it with `find()` for better error handling
+
+        // For each question, get the answer count
+        const questionsWithAnswerCount = await Promise.all(
+            questions.map(async (question) => {
+                const answerCount = await Answer.countDocuments({ question: question._id });
+                return {
+                    ...question.toObject(),
+                    answerCount, // Add the answer count to the question object
+                };
+            })
+        );
+
+        res.status(200).json({ message: "Questions fetched successfully", data: questionsWithAnswerCount });
     } catch (error) {
         res.status(500).json({ message: "Error fetching questions", error: error.message });
     }
@@ -52,7 +67,7 @@ const getQuestionById = async (req, res) => {
 const voteQuestion = async (req, res) => {
     try {
         const { id } = req.params;
-        const { voteType, userId } = req.body;
+        const { vType, userId } = req.body;
 
         const question = await Question.findById(id);
         if (!question) return res.status(404).json({ message: "Question not found" });
@@ -60,13 +75,18 @@ const voteQuestion = async (req, res) => {
         const existingVoteIndex = question.votes.findIndex(v => v.user.toString() === userId);
 
         if (existingVoteIndex !== -1) {
-            if (question.votes[existingVoteIndex].vote === voteType) {
+            if (question.votes[existingVoteIndex].vote === vType) {
                 question.votes.splice(existingVoteIndex, 1);
             } else {
-                question.votes[existingVoteIndex].vote = voteType;
+                question.votes[existingVoteIndex].vote = vType;
             }
+<<<<<<< HEAD
         } else {    
             question.votes.push({ user: userId, vote: voteType });
+=======
+        } else {
+            question.votes.push({ user: userId, vote: vType });
+>>>>>>> 23bd57a2b87174f7c19f65cf3ecd767b1e81b026
         }
 
         await question.save();
@@ -76,7 +96,7 @@ const voteQuestion = async (req, res) => {
         if (question.author.toString() !== userId) {
             const notif = new Notification({
                 user: question.author,
-                message: voteType === 1 ? "Someone liked your question." : "Someone disliked your question.",
+                message: vType === 1 ? "Someone liked your question." : "Someone disliked your question.",
                 question: id,
                 type: "review",
             });

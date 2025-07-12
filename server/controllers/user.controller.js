@@ -1,12 +1,16 @@
 const User = require("../model/user.model");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+<<<<<<< HEAD
 const { upload } = require("../middleware/upload.middleware.js"); 
 const Question = require('../model/question.model');
 const Answer = require('../model/answer.model');
+=======
+const { upload } = require("../middleware/upload.middleware.js");
+>>>>>>> 23bd57a2b87174f7c19f65cf3ecd767b1e81b026
 
 
-const JWT_SECRET = process.env.JWT_SECRET; 
+const JWT_SECRET = process.env.JWT_SECRET;
 
 // Signup controller
 const signup = (req, res) => {
@@ -68,7 +72,7 @@ const login = async (req, res) => {
         res.status(200).json({
             message: "Login successful",
             token,
-            data: { id: user._id, name: user.name, role: user.role },
+            data: { id: user._id, name: user.name, role: user.role, email: user.email, avatar: user.avatar },
         });
     } catch (error) {
         res.status(500).json({ message: "Error during login", error: error.message });
@@ -133,6 +137,7 @@ const unbanUser = async (req, res) => {
     }
 };
 
+<<<<<<< HEAD
 const getUserProfileData = async (req, res) => {
     const { userId } = req.params;
 
@@ -197,11 +202,29 @@ const getUserProfileData = async (req, res) => {
 
 
 
+=======
+const getUserById = async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id).select("-password"); // exclude password
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        res.status(200).json({ data: user });
+    } catch (error) {
+        res.status(500).json({ message: "Error fetching user", error: error.message });
+    }
+};
+
+>>>>>>> 23bd57a2b87174f7c19f65cf3ecd767b1e81b026
 module.exports = {
     signup,
     login,
     getAllUsers,
     banUser,
     unbanUser,
+<<<<<<< HEAD
     getUserProfileData
+=======
+    getUserById
+>>>>>>> 23bd57a2b87174f7c19f65cf3ecd767b1e81b026
 };
