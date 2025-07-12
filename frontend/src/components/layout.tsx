@@ -43,12 +43,6 @@ export default function Layout({ children }: LayoutProps) {
 			</div>
 
 			<div className="flex">
-				{/* Desktop Sidebar - Fixed */}
-				{/* <div className="hidden lg:block">
-					<Sidebar />
-				</div> */}
-
-				{/* Mobile Sidebar Overlay */}
 				<AnimatePresence>
 					{sidebarOpen && (
 						<>
@@ -66,7 +60,6 @@ export default function Layout({ children }: LayoutProps) {
 								transition={{ type: "spring", damping: 30, stiffness: 300 }}
 								className="fixed left-0 top-0 z-50 h-full lg:hidden"
 							>
-								{/* <Sidebar onClose={() => setSidebarOpen(false)} /> */}
 							</motion.div>
 						</>
 					)}

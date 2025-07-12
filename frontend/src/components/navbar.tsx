@@ -44,23 +44,7 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
 	const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 	const [showAvatar, setShowAvatar] = useState(false)
 	const isLoggedIn = localStorage.getItem("user");
-	const [notifications, setNotifications] = useState([
-		{
-			id: 1,
-			title: "New project assigned",
-			time: "2 minutes ago",
-		},
-		{
-			id: 2,
-			title: "Task completed",
-			time: "1 hour ago",
-		},
-		{
-			id: 3,
-			title: "Meeting reminder",
-			time: "3 hours ago",
-		},
-	])
+	const [notifications, setNotifications] = useState<any[]>([{}])
 
 	const socket = useSocket();
 
@@ -71,9 +55,10 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
 
 	useEffect(() => {
 		if (!socket) return;
-
+		console.log(socket)
 		const handleNotif = (notif: any) => {
-			setNotifications((prev) => [notif, ...prev]);
+			console.log(notif, " iiiiiiiiiii")
+			setNotifications((prev: any) => [notif, ...prev]);
 		};
 		socket.on('get-notification', handleNotif);
 		return () => {
@@ -81,13 +66,22 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
 		};
 	}, [socket]);
 
+	const getNoficationsByUser = async (getUser:any) => {
+		const jsoncode = JSON.parse(getUser);
+		const resp = await fetch(`${import.meta.env.VITE_APP_API_URL}/notifications/user/${jsoncode?.id}`).then((res) => {
+			return res.json();
+		});
+		console.log(resp, " rrrr")
+		setNotifications(resp.data);
+	}
+
 	useEffect(() => {
 		const getUser = localStorage.getItem("user");
 		if (getUser) {
 			setTimeout(() => {
 				setShowAvatar(true);
-				console.log(user, " 888");
 			}, 1000);
+			getNoficationsByUser(getUser)
 		}
 		else {
 			router("/login");
@@ -172,11 +166,11 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
 									</div>
 
 									{notifications.length > 0 ? (
-										notifications.map((notification) => (
-											<DropdownMenuItem key={notification.id} className="p-3">
+										notifications.map((notification: any) => (
+											<DropdownMenuItem key={notification._id} className="p-3">
 												<div className="flex flex-col space-y-1">
-													<p className="text-sm font-medium">{notification.title}</p>
-													<p className="text-xs text-muted-foreground">{notification.time}</p>
+													<p className="text-sm font-medium">{notification.message}</p>
+													<p className="text-xs text-muted-foreground">{notification.createdAt}</p>
 												</div>
 											</DropdownMenuItem>
 										))

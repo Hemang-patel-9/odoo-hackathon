@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
+import { useAuth } from './authContext';
 
 interface ServerToClientEvents {
 	'get-notification': (data: any) => void;
@@ -7,6 +8,7 @@ interface ServerToClientEvents {
 
 interface ClientToServerEvents {
 	'register-user': (userId: string) => void;
+	// 'notify':()=>void;
 }
 
 type TypedSocket = Socket<ServerToClientEvents, ClientToServerEvents>;
@@ -18,18 +20,19 @@ interface SocketProviderProps {
 	children: React.ReactNode;
 }
 
-export const SocketProvider: React.FC<SocketProviderProps> = ({ userId, children }) => {
+export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
+	const { user } = useAuth();
 	const socketRef = useRef<TypedSocket | null>(null);
 	const [isConnected, setIsConnected] = useState(false);
 
 	useEffect(() => {
-		if (!userId) return;
+		if (!user?.id) return;
 
 		const socket: TypedSocket = io(import.meta.env.VITE_APP_SOCKET_URL, {
 			transports: ['websocket'],
 		});
 
-		socket.emit('register-user', userId);
+		socket.emit('register-user', user?.id);
 		socketRef.current = socket;
 		setIsConnected(true);
 
@@ -37,7 +40,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ userId, children
 			socket.disconnect();
 			setIsConnected(false);
 		};
-	}, [userId]);
+	}, [user]);
 
 	return (
 		<SocketContext.Provider value={isConnected ? socketRef.current : null}>

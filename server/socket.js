@@ -1,18 +1,12 @@
-// socket.js
+
 const { Server } = require('socket.io');
 
-// Create user ↔ socket mapping
-const onlineUsers = new Map();
+const onlineUsers = {};
 
-/**
- * Initialize Socket.IO server
- * @param {import('http').Server} server - Node HTTP server
- * @returns {Server} - socket.io instance
- */
 const initializeSocket = (server) => {
 	const io = new Server(server, {
 		cors: {
-			origin: '*', // Or your frontend origin
+			origin: '*', // ⚠️ In production, set to your frontend origin
 			methods: ['GET', 'POST'],
 		},
 	});
@@ -20,23 +14,36 @@ const initializeSocket = (server) => {
 	io.on('connection', (socket) => {
 		console.log('✅ Socket connected:', socket.id);
 
+		// 🧾 Register a user
 		socket.on('register-user', (userId) => {
-			onlineUsers.set(userId, socket.id);
+			if (!userId) {
+				console.warn('⚠️ Missing userId during registration');
+				return;
+			}
+			onlineUsers[userId] = socket.id;
 			console.log(`📌 User ${userId} registered with socket ${socket.id}`);
+			console.log('🌍 Current online users:', onlineUsers);
 		});
 
-		socket.on('notify', (data) => {
-			if (data.user) {
-				socket.to(data.user).emit("get-notification", data);
+		// 🔔 Notify another user (usually when question is answered or mentioned)
+		socket.on('notify', ({ user: toUserId, data, qauth }) => {
+			const targetSocketId = onlineUsers[toUserId];
+			console.log(`📡 Attempting to notify ${toUserId} → socket: ${targetSocketId}`);
+
+			if (qauth && targetSocketId) {
+				socket.to(targetSocketId).emit('get-notification', data);
+				console.log(`📨 Notification sent to user ${toUserId}`);
+			} else {
+				console.log(`⚠️ Notification skipped: User ${toUserId} is offline or qauth failed`);
 			}
 		});
 
+		// 🔌 On disconnect: remove user from tracking
 		socket.on('disconnect', () => {
-			console.log('🔌 Socket disconnected:', socket.id);
-			for (const [userId, sockId] of onlineUsers.entries()) {
-				if (sockId === socket.id) {
-					onlineUsers.delete(userId);
-					console.log(`❌ Removed user ${userId} from online list`);
+			for (const userId in onlineUsers) {
+				if (onlineUsers[userId] === socket.id) {
+					delete onlineUsers[userId];
+					console.log(`❌ Disconnected: Removed user ${userId}`);
 					break;
 				}
 			}

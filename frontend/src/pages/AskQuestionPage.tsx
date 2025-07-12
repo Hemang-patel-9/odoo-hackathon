@@ -40,6 +40,27 @@ export default function AskQuestionPage() {
         setTags(tags.filter((tag) => tag !== tagToRemove))
     }
 
+    const handlePostQuestion = async () => {
+
+        try {
+            const res = await fetch(
+                `${import.meta.env.VITE_APP_API_URL}/questions`, {
+                method: "POST",
+                headers: {
+                    // Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                },
+            }
+            ).then((res) => res.json());
+            if (!res.error) {
+                navigate("/homepage");
+            }
+        } catch (error) {
+            console.error("Error posting question:");
+        }
+
+    }
+
     const handleTagKeyPress = (e: React.KeyboardEvent) => {
         if (e.key === "Enter" || e.key === ",") {
             e.preventDefault()
@@ -181,6 +202,7 @@ export default function AskQuestionPage() {
                                     <Button
                                         className="bg-blue-600 hover:bg-blue-700"
                                         disabled={!title.trim() || !description.trim() || tags.length === 0}
+                                        onClick={handlePostQuestion}
                                     >
                                         Post Question
                                     </Button>
