@@ -6,17 +6,17 @@ import React, {
 } from "react"
 import CryptoJS from "crypto-js"
 
-interface User {
-	UserId: number
-	username: string
-	password: string
-	phone: string
-	profileImage: string
-	organizationId: number
-	role?: string
-	createdAt: string
-	updatedAt: string
-}
+// interface User {
+// 	UserId: number
+// 	username: string
+// 	password: string
+// 	phone: string
+// 	profileImage: string
+// 	organizationId: number
+// 	role?: string
+// 	createdAt: string
+// 	updatedAt: string
+// }
 
 interface AuthContextType {
 	user: User | null
@@ -25,6 +25,14 @@ interface AuthContextType {
 	login: (user: User, token: string) => void
 	logout: () => void
 }
+
+
+type User = {
+	id: string;
+	name: string;
+	role: string;
+  };
+
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
@@ -53,13 +61,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 		setToken(token)
 		localStorage.setItem("token", token)
 
-		const encryptedOrgId = CryptoJS.AES.encrypt(
-			user.organizationId.toString(),
-			SECRET_KEY
-		).toString()
-
-		localStorage.setItem("organizationId", encryptedOrgId)
-		setDecryptedOrgId(user.organizationId.toString())
+		localStorage.setItem("user", JSON.stringify(user));
 	}
 
 	const logout = () => {

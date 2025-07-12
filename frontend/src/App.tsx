@@ -22,6 +22,8 @@ export default function App() {
                 <Route path="/" element={<Navigate to="/homepage" />} />
                 <Route path="/homepage" element={<HomePage />} />
                 <Route path="/ask" element={<AskQuestionPage />} />
+                <Route path="/login" element={<LoginForm />} />
+                <Route path="/signup" element={<Signup />} />
                 <Route path="/question/:id" element={<OneQuestion />} />
               </Routes>
               {/* <Routes>
