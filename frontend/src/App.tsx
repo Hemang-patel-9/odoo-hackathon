@@ -2,18 +2,13 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import { ThemeProvider } from "./contexts/theme-context"
 import { ConfirmationProvider } from "./contexts/confirmation-context"
 import Layout from "./components/layout"
-import Dashboard from "./pages/dashboard"
-import Projects from "./pages/projects"
-import Billing from "./pages/billing"
-import Invoices from "./pages/invoices"
-import Clients from "./pages/clients"
-import Reports from "./pages/reports"
-import Payments from "./pages/payments"
 import { Toaster } from "./components/ui/toaster"
 import LoginForm from "./components/login-form"
 import NotFound from "./pages/NotFound"
 import Signup from "./pages/Signup"
 import { AuthProvider } from "./contexts/authContext";
+import HomePage from "./pages/HomePage"
+import AskQuestionPage from "./pages/AskQuestionPage"
 
 export default function App() {
   return (
@@ -23,6 +18,11 @@ export default function App() {
           <Router>
             <Layout>
               <Routes>
+                <Route path="/" element={<Navigate to="/homepage" />} />
+                <Route path="/homepage" element={<HomePage />} />
+                <Route path="/ask" element={<AskQuestionPage />} />
+              </Routes>
+              {/* <Routes>
                 <Route path="/" element={<Navigate to="/dashboard" />} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/projects" element={<Projects />} />
@@ -34,7 +34,7 @@ export default function App() {
                 <Route path="/login" element={<LoginForm />} />
                 <Route path="/signup" element={<Signup />} />
                 <Route path="*" element={<NotFound />} />
-              </Routes>
+              </Routes> */}
             </Layout>
           </Router>
           <Toaster />
