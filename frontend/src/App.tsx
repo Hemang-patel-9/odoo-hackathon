@@ -11,6 +11,7 @@ import HomePage from "./pages/HomePage"
 import AskQuestionPage from "./pages/AskQuestionPage"
 import OneQuestion from "./pages/OneQuestion"
 import ProfilePage from "./pages/ProfilePage"
+import HeroSection from "./pages/HeroSection"
 
 export default function App() {
   return (
@@ -20,7 +21,7 @@ export default function App() {
           <Router>
             <Layout>
               <Routes>
-                <Route path="/" element={<Navigate to="/homepage" />} />
+                <Route path="/" element={<HeroSection />} />
                 <Route path="/homepage" element={<HomePage />} />
                 <Route path="/ask" element={<AskQuestionPage />} />
                 <Route path="/login" element={<LoginForm />} />
@@ -28,19 +29,6 @@ export default function App() {
                 <Route path="/question/:id" element={<OneQuestion />} />
                 <Route path="/:id" element={<ProfilePage />} />
               </Routes>
-              {/* <Routes>
-                <Route path="/" element={<Navigate to="/dashboard" />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/projects" element={<Projects />} />
-                <Route path="/billing" element={<Billing />} />
-                <Route path="/invoices" element={<Invoices />} />
-                <Route path="/clients" element={<Clients />} />
-                <Route path="/reports" element={<Reports />} />
-                <Route path="/payments" element={<Payments />} />
-                <Route path="/login" element={<LoginForm />} />
-                <Route path="/signup" element={<Signup />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes> */}
             </Layout>
           </Router>
           <Toaster />
