@@ -5,7 +5,7 @@ import type React from "react"
 import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import Navbar from "./navbar"
-import Sidebar from "./sidebar"
+// import Sidebar from "./sidebar"
 import { useLocation } from "react-router-dom"
 
 interface LayoutProps {
@@ -44,9 +44,9 @@ export default function Layout({ children }: LayoutProps) {
 
 			<div className="flex">
 				{/* Desktop Sidebar - Fixed */}
-				<div className="hidden lg:block">
+				{/* <div className="hidden lg:block">
 					<Sidebar />
-				</div>
+				</div> */}
 
 				{/* Mobile Sidebar Overlay */}
 				<AnimatePresence>
@@ -66,7 +66,7 @@ export default function Layout({ children }: LayoutProps) {
 								transition={{ type: "spring", damping: 30, stiffness: 300 }}
 								className="fixed left-0 top-0 z-50 h-full lg:hidden"
 							>
-								<Sidebar onClose={() => setSidebarOpen(false)} />
+								{/* <Sidebar onClose={() => setSidebarOpen(false)} /> */}
 							</motion.div>
 						</>
 					)}

@@ -57,15 +57,25 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
 					<motion.div whileHover={{ scale: 1.05 }} className="flex items-center cursor-pointer space-x-2" onClick={() => {
 						navigate("/");
 					}}>
-						<div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+						{/* <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
 							<span className="text-primary-foreground font-bold text-sm">CM</span>
-						</div>
-						<span className="font-bold text-xl hidden sm:block">Construction</span>
+						</div> */}
+						<span className="font-bold text-xl hidden sm:block">StackIt</span>
 					</motion.div>
 				</div>
 
 				{/* Right Section */}
 				<div className="flex items-center space-x-2">
+
+					<motion.div whileHover={{ scale: 1.05 }} className="flex items-center cursor-pointer space-x-2" onClick={() => {
+						navigate("/");
+					}}>
+						{/* <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+							<span className="text-primary-foreground font-bold text-sm">CM</span>
+						</div> */}
+						<span className="text hidden sm:block">Home</span>
+					</motion.div>
+
 					{/* Notifications */}
 					<DropdownMenu>
 						<DropdownMenuTrigger asChild>
@@ -83,30 +93,13 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
 									<p className="text-xs text-muted-foreground">2 minutes ago</p>
 								</div>
 							</DropdownMenuItem>
-							<DropdownMenuItem>
-								<div className="flex flex-col space-y-1">
-									<p className="text-sm font-medium">Invoice payment received</p>
-									<p className="text-xs text-muted-foreground">1 hour ago</p>
-								</div>
-							</DropdownMenuItem>
-							<DropdownMenuItem>
-								<div className="flex flex-col space-y-1">
-									<p className="text-sm font-medium">Client meeting scheduled</p>
-									<p className="text-xs text-muted-foreground">3 hours ago</p>
-								</div>
-							</DropdownMenuItem>
 						</DropdownMenuContent>
 					</DropdownMenu>
 
 					{/* Theme Toggle */}
-					<Button variant="ghost" size="icon" onClick={toggleTheme}>
-						<motion.div initial={false} animate={{ rotate: theme === "dark" ? 180 : 0 }} transition={{ duration: 0.3 }}>
-							{theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-						</motion.div>
-					</Button>
 
 					{/* Login/Profile */}
-					{user ? (
+					{!user ? (
 						<DropdownMenu>
 							<DropdownMenuTrigger asChild>
 								<Button variant="ghost" size="icon">
@@ -122,6 +115,12 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
 									<span className="font-semibold text-sm">{user?.username}</span>
 								</div>
 								<DropdownMenuItem>Profile</DropdownMenuItem>
+								<DropdownMenuItem onClick={toggleTheme}>
+									<motion.div initial={false} animate={{ rotate: theme === "dark" ? 180 : 0 }} transition={{ duration: 0.3 }}>
+										{theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+									</motion.div>
+									{theme === "dark" ? "Light Mode" : "Dark Mode"}
+								</DropdownMenuItem>
 								<DropdownMenuItem onClick={logout}>Logout</DropdownMenuItem>
 							</DropdownMenuContent>
 						</DropdownMenu>
