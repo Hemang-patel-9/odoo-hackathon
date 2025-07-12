@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, ChevronDown } from 'lucide-react';
+import { Search, ChevronDown, Bold, Italic, List, Link2, Image, AlignLeft, AlignCenter, AlignRight, Smile } from 'lucide-react';
 import {
     Select,
     SelectContent,
@@ -11,18 +11,27 @@ import {
     SelectValue
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Question } from '@/types/question';
 
 export default function HomePage() {
     const navigate = useNavigate();
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedSort, setSelectedSort] = useState('newest');
-    const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+    const [selectedCategories, setSelectedCategories] = useState([]);
     const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
-    const [questions, setQuestions] = useState<Question[]>([]);
+    const [questions, setQuestions] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [isAskModalOpen, setIsAskModalOpen] = useState(false);
+    const [title, setTitle] = useState('');
+    const [description, setDescription] = useState('');
+    const [tags, setTags] = useState([]);
+    const [tagInput, setTagInput] = useState('');
 
     const sortOptions = [
         { value: 'newest', label: 'Newest' },
@@ -55,7 +64,7 @@ export default function HomePage() {
         { value: 'mysql', label: 'MySQL', emoji: '🗃️' }
     ];
 
-    const handleCategoryToggle = (categoryValue: string) => {
+    const handleCategoryToggle = (categoryValue) => {
         setSelectedCategories(prev =>
             prev.includes(categoryValue)
                 ? prev.filter(cat => cat !== categoryValue)
@@ -69,13 +78,58 @@ export default function HomePage() {
         setSearchQuery('');
     };
 
+    const addTag = (inputTags) => {
+        const newTags = inputTags
+            .split(/\s+/)
+            .map(tag => tag.trim().toLowerCase())
+            .filter(tag => tag && !tags.includes(tag) && tags.length < 5);
+        if (newTags.length > 0) {
+            const availableSlots = 5 - tags.length;
+            setTags([...tags, ...newTags.slice(0, availableSlots)]);
+            setTagInput('');
+        }
+    };
+
+    const removeTag = (tagToRemove) => {
+        setTags(tags.filter(tag => tag !== tagToRemove));
+    };
+
+    const handleTagKeyPress = (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            addTag(tagInput);
+        }
+    };
+
+    const handlePost = async () => {
+        if (!title.trim() || !description.trim() || tags.length === 0) return;
+        try {
+            const user = JSON.parse(localStorage.getItem("user") || "{}");
+            const res = await fetch(`${import.meta.env.VITE_APP_API_URL}/questions`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title, description, tags, author: user.id })
+            });
+            if (res.ok) {
+                setIsAskModalOpen(false);
+                setTitle('');
+                setDescription('');
+                setTags([]);
+                setTagInput('');
+                setLoading(true);
+            }
+        } catch (err) {
+            console.error('Error posting question:', err);
+        }
+    };
+
     useEffect(() => {
         const fetchQuestions = async () => {
             try {
                 const res = await fetch(`${import.meta.env.VITE_APP_API_URL}/questions`);
                 const json = await res.json();
                 if (!res.ok) throw new Error(json.message);
-                const data: Question[] = json.data;
+                const data = json.data;
 
                 let filtered = [...data];
 
@@ -115,30 +169,28 @@ export default function HomePage() {
         };
 
         fetchQuestions();
-    }, [searchQuery, selectedSort, selectedCategories]);
+    }, [searchQuery, selectedSort, selectedCategories, loading]);
 
     return (
-        <div className="container mx-auto px-4 py-8 space-y-6 bg-background text-foreground min-h-screen">
+        <div className="container mx-auto px-4 py-8 space-y-8 bg-background text-foreground min-h-screen">
             {/* Search and Ask Question Section */}
             <div className="flex flex-col md:flex-row gap-4">
                 <div className="relative flex-1">
-                    <form onSubmit={(e) => e.preventDefault()}>
-                        <Input
-                            type="text"
-                            placeholder="Search questions..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-10 pr-4 py-3 rounded-md border border-input bg-background text-foreground placeholder-muted-foreground focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
-                        />
-                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                    </form>
+                    <Input
+                        type="text"
+                        placeholder="Search questions..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="w-full pl-10 pr-4 py-3 rounded-md border border-input bg-background text-foreground placeholder-muted-foreground focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
+                    />
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 </div>
-                <button
+                <Button
+                    onClick={() => setIsAskModalOpen(true)}
                     className="px-4 py-3 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors duration-200 font-medium"
-                    onClick={() => navigate('/ask')}
                 >
                     Ask New Question
-                </button>
+                </Button>
             </div>
 
             {/* Filters Section */}
@@ -285,6 +337,78 @@ export default function HomePage() {
                     ))
                 )}
             </div>
+
+            {/* Ask Question Modal */}
+            <Dialog open={isAskModalOpen} onOpenChange={setIsAskModalOpen}>
+                <DialogContent className="bg-background border border-border text-foreground max-w-2xl rounded-md">
+                    <DialogHeader>
+                        <DialogTitle className="text-xl font-semibold text-foreground">Ask a Question</DialogTitle>
+                    </DialogHeader>
+
+                    <div className="space-y-4">
+                        <Input
+                            placeholder="Enter question title"
+                            value={title}
+                            onChange={(e) => setTitle(e.target.value)}
+                            className="rounded-md border border-input bg-background text-foreground placeholder-muted-foreground focus:ring-2 focus:ring-primary focus:border-transparent"
+                        />
+                        <div className="border border-border rounded-t-md bg-muted p-2">
+                            <div className="flex flex-wrap gap-1">
+                                {[Bold, Italic, List, Link2, Image, AlignLeft, AlignCenter, AlignRight, Smile].map((Icon, i) => (
+                                    <Button
+                                        key={i}
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground hover:bg-accent/50 rounded-sm transition-colors duration-150"
+                                    >
+                                        <Icon className="h-4 w-4" />
+                                    </Button>
+                                ))}
+                            </div>
+                        </div>
+                        <Textarea
+                            placeholder="Enter question description"
+                            value={description}
+                            onChange={(e) => setDescription(e.target.value)}
+                            className="min-h-[150px] bg-background border border-border border-t-0 rounded-t-none text-foreground placeholder-muted-foreground focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
+                        />
+                        <Input
+                            placeholder="Enter tags (space-separated, max 5)"
+                            value={tagInput}
+                            onChange={(e) => setTagInput(e.target.value)}
+                            onKeyDown={handleTagKeyPress}
+                            className="rounded-md border border-input bg-background text-foreground placeholder-muted-foreground focus:ring-2 focus:ring-primary focus:border-transparent"
+                        />
+                        <div className="flex flex-wrap gap-2">
+                            {tags.map((tag) => (
+                                <Badge
+                                    key={tag}
+                                    onClick={() => removeTag(tag)}
+                                    className="bg-accent text-accent-foreground hover:bg-accent/80 cursor-pointer px-3 py-1 rounded-md transition-colors duration-150"
+                                >
+                                    {tag} <X className="ml-1 h-3 w-3" />
+                                </Badge>
+                            ))}
+                        </div>
+                        <div className="flex justify-end gap-3">
+                            <Button
+                                variant="outline"
+                                onClick={() => setIsAskModalOpen(false)}
+                                className="border-border text-foreground hover:bg-muted hover:text-foreground rounded-md"
+                            >
+                                Cancel
+                            </Button>
+                            <Button
+                                onClick={handlePost}
+                                className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-md"
+                                disabled={!(title.trim() && description.trim() && tags.length > 0)}
+                            >
+                                Post
+                            </Button>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
