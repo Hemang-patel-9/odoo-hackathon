@@ -62,65 +62,44 @@ export default function HomePage() {
         setSearchQuery('');
     };
 
-
-
-    const [questions, setQuestions] = useState([]);
-    const [loading, setLoading] = useState(true);
-    useEffect(() => {
-        // Define async function inside useEffect
-        const fetchData = async () => {
-            try {
-                const response = await axios.get(`${process.env.VITE_APP_API_URL}/`);
-                setQuestions(response.data);
-                setLoading(false);
-            } catch (err) {
-                console.error(err);
-                setLoading(false);
-            }
-        };
-
-        fetchData();
-        console.log(questions);
-    }, []);
-
-    // const questions = [
-    //     {
-    //         id: 1,
-    //         title: "How to implement JWT authentication in React?",
-    //         description:
-    //             "I'm trying to implement JWT authentication in my React application but facing issues with token storage and validation...",
-    //         author: "john_dev",
-    //         avatar: "/placeholder.svg?height=32&width=32",
-    //         votes: 15,
-    //         answers: 3,
-    //         tags: ["React", "JWT", "Authentication"],
-    //         timeAgo: "2 hours ago",
-    //     },
-    //     {
-    //         id: 2,
-    //         title: "Best practices for state management in large React apps?",
-    //         description:
-    //             "What are the recommended patterns for managing complex state in large-scale React applications? Should I use Redux, Zustand, or Context API?",
-    //         author: "sarah_codes",
-    //         avatar: "/placeholder.svg?height=32&width=32",
-    //         votes: 23,
-    //         answers: 7,
-    //         tags: ["React", "State Management", "Redux", "Zustand"],
-    //         timeAgo: "2 hours ago",
-    //     },
-    //     {
-    //         id: 3,
-    //         title: "How to optimize database queries in Node.js?",
-    //         description:
-    //             "My Node.js application is experiencing slow database queries. What are some optimization techniques I can implement?",
-    //         author: "mike_backend",
-    //         avatar: "/placeholder.svg?height=32&width=32",
-    //         votes: 8,
-    //         answers: 2,
-    //         tags: ["Node.js", "Database", "Performance"],
-    //         timeAgo: "2 hours ago",
-    //     },
-    // ]
+    const questions = [
+        {
+            id: 1,
+            title: "How to implement JWT authentication in React?",
+            description:
+                "I'm trying to implement JWT authentication in my React application but facing issues with token storage and validation...",
+            author: "john_dev",
+            avatar: "/placeholder.svg?height=32&width=32",
+            votes: 15,
+            answers: 3,
+            tags: ["React", "JWT", "Authentication"],
+            timeAgo: "2 hours ago",
+        },
+        {
+            id: 2,
+            title: "Best practices for state management in large React apps?",
+            description:
+                "What are the recommended patterns for managing complex state in large-scale React applications? Should I use Redux, Zustand, or Context API?",
+            author: "sarah_codes",
+            avatar: "/placeholder.svg?height=32&width=32",
+            votes: 23,
+            answers: 7,
+            tags: ["React", "State Management", "Redux", "Zustand"],
+            timeAgo: "2 hours ago",
+        },
+        {
+            id: 3,
+            title: "How to optimize database queries in Node.js?",
+            description:
+                "My Node.js application is experiencing slow database queries. What are some optimization techniques I can implement?",
+            author: "mike_backend",
+            avatar: "/placeholder.svg?height=32&width=32",
+            votes: 8,
+            answers: 2,
+            tags: ["Node.js", "Database", "Performance"],
+            timeAgo: "2 hours ago",
+        },
+    ]
     return (
         <div className="space-y-4">
             {/* Search Bar and Ask Question Button */}
@@ -277,7 +256,9 @@ export default function HomePage() {
 
                                     {/* Question Content */}
                                     <div className="flex-1">
-                                        <h3 onClick={() => { }} className="text-lg font-semibold text-blue-700 hover:text-blue-600 mb-2 cursor-pointer">
+                                        <h3 onClick={() => {
+                                            navigate('/question/:id')
+                                        }} className="text-lg font-semibold text-blue-700 hover:text-blue-600 mb-2 cursor-pointer">
                                             {question.title}
                                         </h3>
 

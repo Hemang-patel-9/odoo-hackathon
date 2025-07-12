@@ -18,6 +18,7 @@ import {
     AlignCenter,
     AlignRight,
     Smile,
+    Reply,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
@@ -25,6 +26,7 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
+import { useNavigate } from "react-router-dom"
 
 const questionData = {
     id: 1,
@@ -213,7 +215,7 @@ export default function OneQuestion() {
     const [questionVotes, setQuestionVotes] = useState(questionData.votes)
     const [answerVotes, setAnswerVotes] = useState(answers.map((a) => a.votes))
     const [newAnswer, setNewAnswer] = useState("")
-
+    const navigate = useNavigate();
     const handleQuestionVote = (direction: "up" | "down") => {
         setQuestionVotes((prev) => (direction === "up" ? prev + 1 : prev - 1))
     }
@@ -225,19 +227,19 @@ export default function OneQuestion() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-950 text-white">
+        <div className="min-h-screen bg-background text-white">
             {/* Header */}
-            <header className="border-b border-gray-800 bg-gray-900/50 backdrop-blur-sm">
+            <header className="border-b border-gray-800 bg-foreground/10 backdrop-blur-sm">
                 <div className="container mx-auto px-4 py-4">
-                    <div className="flex items-center space-x-4">
-                        <Link href="/">
-                            <Button variant="ghost" size="icon">
-                                <ArrowLeft className="h-5 w-5" />
-                            </Button>
-                        </Link>
+                    <div className="flex items-center space-x-4 text-foreground/60">
+                        <Button onClick={() => {
+                            navigate('/')
+                        }} variant="ghost" size="icon" className=" hover:bg-foreground/10">
+                            <ArrowLeft className="h-5 w-5" />
+                        </Button>
                         <div className="flex-1">
-                            <h1 className="text-xl font-semibold">{questionData.title}</h1>
-                            <div className="flex items-center space-x-4 text-sm text-gray-400 mt-1">
+                            <h1 className="text-xl font-semibold text-foreground/80">{questionData.title}</h1>
+                            <div className="flex items-center space-x-4 text-sm text-foreground/50 mt-1">
                                 <span>Asked {questionData.timeAgo}</span>
                                 <span>Viewed {questionData.views} times</span>
                             </div>
@@ -247,11 +249,11 @@ export default function OneQuestion() {
             </header>
 
             <div className="container mx-auto px-4 py-8 max-w-6xl">
-                <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+                <div className="grid gap-8">
                     {/* Main Content */}
-                    <div className="lg:col-span-3 space-y-8">
+                    <div className="lg:col-span-3">
                         {/* Question */}
-                        <Card className="bg-gray-900 border-gray-800">
+                        <Card className="bg-background border-foreground/10">
                             <CardContent className="p-6">
                                 <div className="flex gap-6">
                                     {/* Vote Section */}
@@ -260,7 +262,7 @@ export default function OneQuestion() {
                                             variant="ghost"
                                             size="icon"
                                             onClick={() => handleQuestionVote("up")}
-                                            className="text-gray-400 hover:text-green-400"
+                                            className="text-foreground/40 hover:text-green-400"
                                         >
                                             <ChevronUp className="h-6 w-6" />
                                         </Button>
@@ -269,19 +271,16 @@ export default function OneQuestion() {
                                             variant="ghost"
                                             size="icon"
                                             onClick={() => handleQuestionVote("down")}
-                                            className="text-gray-400 hover:text-red-400"
+                                            className="text-foreground/40 hover:text-red-400"
                                         >
                                             <ChevronDown className="h-6 w-6" />
-                                        </Button>
-                                        <Button variant="ghost" size="icon" className="text-gray-400 hover:text-yellow-400">
-                                            <Bookmark className="h-5 w-5" />
                                         </Button>
                                     </div>
 
                                     {/* Question Content */}
                                     <div className="flex-1">
                                         <div className="prose prose-invert max-w-none mb-6">
-                                            <div className="whitespace-pre-wrap text-gray-300 leading-relaxed">
+                                            <div className="whitespace-pre-wrap text-foreground leading-relaxed">
                                                 {questionData.description}
                                             </div>
                                         </div>
@@ -301,8 +300,8 @@ export default function OneQuestion() {
                                                     Share
                                                 </Button>
                                                 <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
-                                                    <Flag className="h-4 w-4 mr-2" />
-                                                    Flag
+                                                    <Reply className="h-4 w-4 mr-2" />
+                                                    Reply
                                                 </Button>
                                             </div>
 
@@ -325,10 +324,9 @@ export default function OneQuestion() {
                         {/* Answers */}
                         <div>
                             <h2 className="text-2xl font-semibold mb-6">{answers.length} Answers</h2>
-
                             <div className="space-y-6">
                                 {answers.map((answer, index) => (
-                                    <Card key={answer.id} className="bg-gray-900 border-gray-800">
+                                    <Card key={answer.id} className="bg-foreground/10 border-foreground/20">
                                         <CardContent className="p-6">
                                             <div className="flex gap-6">
                                                 {/* Vote Section */}
@@ -337,7 +335,7 @@ export default function OneQuestion() {
                                                         variant="ghost"
                                                         size="icon"
                                                         onClick={() => handleAnswerVote(index, "up")}
-                                                        className="text-gray-400 hover:text-green-400"
+                                                        className="text-foreground/40 hover:text-green-400"
                                                     >
                                                         <ChevronUp className="h-6 w-6" />
                                                     </Button>
@@ -346,13 +344,13 @@ export default function OneQuestion() {
                                                         variant="ghost"
                                                         size="icon"
                                                         onClick={() => handleAnswerVote(index, "down")}
-                                                        className="text-gray-400 hover:text-red-400"
+                                                        className="text-foreground/40 hover:text-red-400"
                                                     >
                                                         <ChevronDown className="h-6 w-6" />
                                                     </Button>
                                                     {answer.isAccepted && (
                                                         <div className="bg-green-600 rounded-full p-1">
-                                                            <Check className="h-4 w-4 text-white" />
+                                                            <Check className="h-4 w-4 text-background" />
                                                         </div>
                                                     )}
                                                 </div>
@@ -360,7 +358,7 @@ export default function OneQuestion() {
                                                 {/* Answer Content */}
                                                 <div className="flex-1">
                                                     <div className="prose prose-invert max-w-none mb-6">
-                                                        <div className="whitespace-pre-wrap text-gray-300 leading-relaxed">{answer.content}</div>
+                                                        <div className="whitespace-pre-wrap text-foreground leading-relaxed">{answer.content}</div>
                                                     </div>
 
                                                     <div className="flex items-center justify-between">
@@ -369,16 +367,12 @@ export default function OneQuestion() {
                                                                 <Share className="h-4 w-4 mr-2" />
                                                                 Share
                                                             </Button>
-                                                            <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
-                                                                <Flag className="h-4 w-4 mr-2" />
-                                                                Flag
-                                                            </Button>
                                                         </div>
 
                                                         <div className="flex items-center space-x-2 text-sm">
                                                             <Avatar className="h-8 w-8">
                                                                 <AvatarImage src={answer.avatar || "/placeholder.svg"} />
-                                                                <AvatarFallback>{answer.author[0].toUpperCase()}</AvatarFallback>
+                                                                <AvatarFallback className="bg-blue-700 text-background">{answer.author[0].toUpperCase()}</AvatarFallback>
                                                             </Avatar>
                                                             <div>
                                                                 <div className="text-blue-400">{answer.author}</div>
@@ -444,48 +438,6 @@ export default function OneQuestion() {
 
                                 <div className="flex justify-end mt-4">
                                     <Button className="bg-blue-600 hover:bg-blue-700">Post Your Answer</Button>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </div>
-
-                    {/* Sidebar */}
-                    <div className="space-y-6">
-                        {/* Related Questions */}
-                        <Card className="bg-gray-900 border-gray-800">
-                            <CardContent className="p-4">
-                                <h3 className="font-semibold mb-4">Related Questions</h3>
-                                <div className="space-y-3 text-sm">
-                                    <Link href="#" className="block text-blue-400 hover:text-blue-300">
-                                        Best practices for JWT token storage in React
-                                    </Link>
-                                    <Link href="#" className="block text-blue-400 hover:text-blue-300">
-                                        How to handle token refresh in React applications?
-                                    </Link>
-                                    <Link href="#" className="block text-blue-400 hover:text-blue-300">
-                                        React authentication with httpOnly cookies
-                                    </Link>
-                                    <Link href="#" className="block text-blue-400 hover:text-blue-300">
-                                        Implementing protected routes in React Router
-                                    </Link>
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        {/* Hot Network Questions */}
-                        <Card className="bg-gray-900 border-gray-800">
-                            <CardContent className="p-4">
-                                <h3 className="font-semibold mb-4">Hot Network Questions</h3>
-                                <div className="space-y-3 text-sm">
-                                    <Link href="#" className="block text-blue-400 hover:text-blue-300">
-                                        Why is my React component re-rendering unnecessarily?
-                                    </Link>
-                                    <Link href="#" className="block text-blue-400 hover:text-blue-300">
-                                        How to optimize database queries in Node.js?
-                                    </Link>
-                                    <Link href="#" className="block text-blue-400 hover:text-blue-300">
-                                        Best state management solution for large React apps
-                                    </Link>
                                 </div>
                             </CardContent>
                         </Card>
