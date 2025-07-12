@@ -226,7 +226,9 @@ export default function HomePage() {
                                     </div>
 
                                     <div className="flex-1">
-                                        <h3 className="text-lg font-semibold text-blue-700 hover:text-blue-600 mb-2 cursor-pointer">
+                                        <h3 onClick={() => {
+                                            navigate(`question/${question._id}`)
+                                        }} className="text-lg font-semibold text-blue-700 hover:text-blue-600 mb-2 cursor-pointer">
                                             {question.title}
                                         </h3>
                                         <p className="text-gray-600 mb-4 line-clamp-2">{question.description}</p>
