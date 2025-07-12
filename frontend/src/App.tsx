@@ -12,6 +12,7 @@ import AskQuestionPage from "./pages/AskQuestionPage"
 import OneQuestion from "./pages/OneQuestion"
 import ProfilePage from "./pages/ProfilePage"
 import HeroSection from "./pages/HeroSection"
+import AboutUs from "./pages/AboutusPage"
 
 export default function App() {
   return (
@@ -28,6 +29,7 @@ export default function App() {
                 <Route path="/signup" element={<Signup />} />
                 <Route path="/question/:id" element={<OneQuestion />} />
                 <Route path="/:id" element={<ProfilePage />} />
+                <Route path="/about" element={<AboutUs />} />
               </Routes>
             </Layout>
           </Router>

@@ -68,12 +68,21 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
 				<div className="flex items-center space-x-2">
 
 					<motion.div whileHover={{ scale: 1.05 }} className="flex items-center cursor-pointer space-x-2" onClick={() => {
-						navigate("/");
+						navigate("/homepage");
 					}}>
 						{/* <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
 							<span className="text-primary-foreground font-bold text-sm">CM</span>
 						</div> */}
 						<span className="text hidden sm:block">Home</span>
+					</motion.div>
+
+					<motion.div whileHover={{ scale: 1.05 }} className="flex items-center cursor-pointer space-x-2" onClick={() => {
+						navigate("/about");
+					}}>
+						{/* <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+							<span className="text-primary-foreground font-bold text-sm">CM</span>
+						</div> */}
+						<span className="text hidden sm:block">About</span>
 					</motion.div>
 
 					{/* Notifications */}
