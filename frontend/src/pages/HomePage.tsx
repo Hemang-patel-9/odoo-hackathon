@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, ChevronDown } from 'lucide-react';
+import { Search, ChevronDown, Bold, Italic, List, Link2, Image, AlignLeft, AlignCenter, AlignRight, Smile } from 'lucide-react';
 import {
     Select,
     SelectContent,
@@ -11,18 +11,27 @@ import {
     SelectValue
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Question } from '@/types/question';
 
 export default function HomePage() {
     const navigate = useNavigate();
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedSort, setSelectedSort] = useState('newest');
-    const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+    const [selectedCategories, setSelectedCategories] = useState([]);
     const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
-    const [questions, setQuestions] = useState<Question[]>([]);
+    const [questions, setQuestions] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [isAskModalOpen, setIsAskModalOpen] = useState(false);
+    const [title, setTitle] = useState('');
+    const [description, setDescription] = useState('');
+    const [tags, setTags] = useState([]);
+    const [tagInput, setTagInput] = useState('');
 
     const sortOptions = [
         { value: 'newest', label: 'Newest' },
@@ -55,7 +64,7 @@ export default function HomePage() {
         { value: 'mysql', label: 'MySQL', emoji: '🗃️' }
     ];
 
-    const handleCategoryToggle = (categoryValue: string) => {
+    const handleCategoryToggle = (categoryValue) => {
         setSelectedCategories(prev =>
             prev.includes(categoryValue)
                 ? prev.filter(cat => cat !== categoryValue)
@@ -69,13 +78,58 @@ export default function HomePage() {
         setSearchQuery('');
     };
 
+    const addTag = (inputTags) => {
+        const newTags = inputTags
+            .split(/\s+/)
+            .map(tag => tag.trim().toLowerCase())
+            .filter(tag => tag && !tags.includes(tag) && tags.length < 5);
+        if (newTags.length > 0) {
+            const availableSlots = 5 - tags.length;
+            setTags([...tags, ...newTags.slice(0, availableSlots)]);
+            setTagInput('');
+        }
+    };
+
+    const removeTag = (tagToRemove) => {
+        setTags(tags.filter(tag => tag !== tagToRemove));
+    };
+
+    const handleTagKeyPress = (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            addTag(tagInput);
+        }
+    };
+
+    const handlePost = async () => {
+        if (!title.trim() || !description.trim() || tags.length === 0) return;
+        try {
+            const user = JSON.parse(localStorage.getItem("user") || "{}");
+            const res = await fetch(`${import.meta.env.VITE_APP_API_URL}/questions`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title, description, tags, author: user.id })
+            });
+            if (res.ok) {
+                setIsAskModalOpen(false);
+                setTitle('');
+                setDescription('');
+                setTags([]);
+                setTagInput('');
+                setLoading(true);
+            }
+        } catch (err) {
+            console.error('Error posting question:', err);
+        }
+    };
+
     useEffect(() => {
         const fetchQuestions = async () => {
             try {
                 const res = await fetch(`${import.meta.env.VITE_APP_API_URL}/questions`);
                 const json = await res.json();
                 if (!res.ok) throw new Error(json.message);
-                const data: Question[] = json.data;
+                const data = json.data;
 
                 let filtered = [...data];
 
@@ -115,43 +169,45 @@ export default function HomePage() {
         };
 
         fetchQuestions();
-    }, [searchQuery, selectedSort, selectedCategories]);
+    }, [searchQuery, selectedSort, selectedCategories, loading]);
 
     return (
-        <div className="space-y-6">
-            <div className='md:flex gap-3'>
-                <div className="w-full md:w-4/5">
-                    <form onSubmit={(e) => e.preventDefault()} className="relative">
-                        <input
-                            type="text"
-                            placeholder="Search questions..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full bg-background border border-foreground/10 py-2 pl-4 pr-10 rounded-lg focus:outline-none focus:ring-1 focus:ring-foreground/40"
-                        />
-                        <button className="absolute inset-y-0 right-0 flex items-center pr-3">
-                            <Search className="h-5 w-5 text-foreground" />
-                        </button>
-                    </form>
+        <div className="container mx-auto px-4 py-8 space-y-8 bg-background text-foreground min-h-screen">
+            {/* Search and Ask Question Section */}
+            <div className="flex flex-col md:flex-row gap-4">
+                <div className="relative flex-1">
+                    <Input
+                        type="text"
+                        placeholder="Search questions..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="w-full pl-10 pr-4 py-3 rounded-md border border-input bg-background text-foreground placeholder-muted-foreground focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
+                    />
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 </div>
-                <button
-                    className='border border-1 bg-foreground/20 border-foreground/10 py-2 rounded-lg w-full md:w-1/5 hover:bg-foreground/30 transition-colors'
-                    onClick={() => navigate('/ask')}
+                <Button
+                    onClick={() => setIsAskModalOpen(true)}
+                    className="px-4 py-3 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors duration-200 font-medium"
                 >
                     Ask New Question
-                </button>
+                </Button>
             </div>
 
-            <div className="flex items-start gap-4">
+            {/* Filters Section */}
+            <div className="flex flex-col md:flex-row gap-4">
                 <div className="flex-1">
-                    <label className="block text-sm font-medium text-foreground/60 mb-2">Sort by</label>
+                    <label className="block text-sm font-medium text-muted-foreground mb-2">Sort by</label>
                     <Select value={selectedSort} onValueChange={setSelectedSort}>
-                        <SelectTrigger className="w-full">
+                        <SelectTrigger className="w-full bg-background border border-input rounded-md text-foreground focus:ring-2 focus:ring-primary focus:border-transparent">
                             <SelectValue placeholder="Select sort option" />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="bg-background border border-border text-foreground">
                             {sortOptions.map(option => (
-                                <SelectItem key={option.value} value={option.value}>
+                                <SelectItem
+                                    key={option.value}
+                                    value={option.value}
+                                    className="hover:bg-accent hover:text-accent-foreground"
+                                >
                                     {option.label}
                                 </SelectItem>
                             ))}
@@ -160,95 +216,113 @@ export default function HomePage() {
                 </div>
 
                 <div className="flex-1 relative">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-muted-foreground mb-2">
                         Categories ({selectedCategories.length} selected)
                     </label>
-                    <div className="relative">
-                        <button
-                            type="button"
-                            onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
-                            className="w-full px-3 py-2 border border-foreground/10 rounded-lg focus:ring-1 focus:ring-foreground/40 bg-background text-left flex items-center justify-between"
-                        >
-                            <span className="text-sm text-gray-700">
-                                {selectedCategories.length === 0 ? "Select categories..." : `${selectedCategories.length} selected`}
-                            </span>
-                            <ChevronDown className={`h-4 w-4 transition-transform ${showCategoryDropdown ? 'rotate-180' : ''}`} />
-                        </button>
+                    <button
+                        type="button"
+                        onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
+                        className="w-full px-4 py-3 border border-input rounded-md bg-background text-foreground text-left flex items-center justify-between focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
+                    >
+                        <span className="text-sm">
+                            {selectedCategories.length === 0 ? "Select categories..." : `${selectedCategories.length} selected`}
+                        </span>
+                        <ChevronDown className={`h-5 w-5 transition-transform duration-200 ${showCategoryDropdown ? 'rotate-180' : ''}`} />
+                    </button>
 
-                        {showCategoryDropdown && (
-                            <div className="absolute z-10 w-full mt-1 bg-background border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                                <div className="p-2">
-                                    {categoryOptions.map(option => (
-                                        <label key={option.value} className="flex items-center gap-2 p-2 hover:bg-gray-50 cursor-pointer rounded">
-                                            <Input
-                                                type="checkbox"
-                                                checked={selectedCategories.includes(option.value)}
-                                                onChange={() => handleCategoryToggle(option.value)}
-                                                className="w-4 h-4"
-                                            />
-                                            <span className="text-sm flex items-center gap-1">
-                                                {option.emoji} {option.label}
-                                            </span>
-                                        </label>
-                                    ))}
-                                </div>
-                                <div className="border-t border-gray-200 p-2">
-                                    <button
-                                        onClick={() => setSelectedCategories([])}
-                                        className="w-full text-xs text-red-600 hover:text-red-800"
+                    {showCategoryDropdown && (
+                        <div className="absolute z-10 w-full mt-2 bg-background border border-border rounded-md shadow-lg max-h-80 overflow-y-auto">
+                            <div className="p-3 space-y-1">
+                                {categoryOptions.map(option => (
+                                    <label
+                                        key={option.value}
+                                        className="flex items-center gap-2 p-2 hover:bg-accent hover:text-accent-foreground cursor-pointer rounded-md transition-colors duration-150"
                                     >
-                                        Clear all categories
-                                    </button>
-                                </div>
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedCategories.includes(option.value)}
+                                            onChange={() => handleCategoryToggle(option.value)}
+                                            className="h-4 w-4 text-primary border-input rounded focus:ring-primary"
+                                        />
+                                        <span className="text-sm flex items-center gap-1.5">
+                                            {option.emoji} {option.label}
+                                        </span>
+                                    </label>
+                                ))}
                             </div>
-                        )}
-                    </div>
+                            <div className="border-t border-border p-3">
+                                <button
+                                    onClick={() => setSelectedCategories([])}
+                                    className="w-full text-sm text-destructive hover:text-destructive/80 transition-colors duration-150"
+                                >
+                                    Clear all categories
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
 
+            {/* Clear Filters Button */}
+            {(searchQuery || selectedCategories.length > 0 || selectedSort !== 'newest') && (
+                <button
+                    onClick={clearFilters}
+                    className="text-sm text-destructive hover:text-destructive/80 underline transition-colors duration-150"
+                >
+                    Clear all filters
+                </button>
+            )}
+
+            {/* Questions List */}
             <div className="space-y-4">
                 {loading ? (
-                    <p>Loading questions...</p>
+                    <p className="text-center text-muted-foreground">Loading questions...</p>
+                ) : questions.length === 0 ? (
+                    <p className="text-center text-muted-foreground">No questions found.</p>
                 ) : (
                     questions.map((question) => (
-                        <Card key={question._id}>
+                        <Card
+                            key={question._id}
+                            className="bg-card border border-border rounded-md shadow-sm hover:shadow-md transition-shadow duration-200"
+                        >
                             <CardContent className="p-6">
                                 <div className="flex gap-4">
-                                    <div className="flex flex-col items-center space-y-2 text-sm text-gray-500 min-w-[60px]">
+                                    <div className="flex flex-col items-center space-y-3 text-sm text-muted-foreground min-w-[80px]">
                                         <div className="text-center">
-                                            <div className="font-semibold">{question.votes.length}</div>
-                                            <div>votes</div>
+                                            <div className="font-semibold text-foreground">{question.votes.length}</div>
+                                            <div>Votes</div>
                                         </div>
-                                        <div className="text-center px-2 py-1 rounded bg-green-600 text-white">
+                                        <div className="text-center px-3 py-1.5 rounded bg-primary text-primary-foreground">
                                             <div className="font-semibold">0</div>
-                                            <div className="text-xs">answers</div>
+                                            <div className="text-xs">Answers</div>
                                         </div>
                                     </div>
 
                                     <div className="flex-1">
-                                        <h3 onClick={() => {
-                                            navigate(`question/${question._id}`)
-                                        }} className="text-lg font-semibold text-blue-700 hover:text-blue-600 mb-2 cursor-pointer">
+                                        <h3
+                                            className="text-lg font-semibold text-primary hover:text-primary/80 mb-3 cursor-pointer transition-colors duration-150"
+                                            onClick={() => navigate(`/question/${question._id}`)}
+                                        >
                                             {question.title}
                                         </h3>
-                                        <p className="text-gray-600 mb-4 line-clamp-2">{question.description}</p>
+                                        <p className="text-muted-foreground mb-4 line-clamp-2">{question.description}</p>
 
                                         <div className="flex flex-wrap gap-2 mb-4">
                                             {question.tags.map((tag) => (
-                                                <div
+                                                <span
                                                     key={tag}
-                                                    className="bg-blue-300/20 rounded-md px-4 text-sm text-blue-600 hover:bg-blue-500/30"
+                                                    className="bg-accent text-accent-foreground rounded-md px-3 py-1 text-sm hover:bg-accent/80 transition-colors duration-150"
                                                 >
                                                     {tag}
-                                                </div>
+                                                </span>
                                             ))}
                                         </div>
 
-                                        <div className="flex items-center justify-between text-sm text-gray-400">
-                                            <div className="flex items-center space-x-2">
-                                                <Avatar className="h-6 w-6">
-                                                    <AvatarImage src={"/placeholder.svg"} />
-                                                    <AvatarFallback className='bg-blue-700 text-white'>
+                                        <div className="flex items-center justify-between text-sm text-muted-foreground">
+                                            <div className="flex items-center gap-2">
+                                                <Avatar className="h-8 w-8">
+                                                    <AvatarImage src="/placeholder.svg" />
+                                                    <AvatarFallback className="bg-primary text-primary-foreground">
                                                         {question.author.name[0].toUpperCase()}
                                                     </AvatarFallback>
                                                 </Avatar>
@@ -263,6 +337,78 @@ export default function HomePage() {
                     ))
                 )}
             </div>
+
+            {/* Ask Question Modal */}
+            <Dialog open={isAskModalOpen} onOpenChange={setIsAskModalOpen}>
+                <DialogContent className="bg-background border border-border text-foreground max-w-2xl rounded-md">
+                    <DialogHeader>
+                        <DialogTitle className="text-xl font-semibold text-foreground">Ask a Question</DialogTitle>
+                    </DialogHeader>
+
+                    <div className="space-y-4">
+                        <Input
+                            placeholder="Enter question title"
+                            value={title}
+                            onChange={(e) => setTitle(e.target.value)}
+                            className="rounded-md border border-input bg-background text-foreground placeholder-muted-foreground focus:ring-2 focus:ring-primary focus:border-transparent"
+                        />
+                        <div className="border border-border rounded-t-md bg-muted p-2">
+                            <div className="flex flex-wrap gap-1">
+                                {[Bold, Italic, List, Link2, Image, AlignLeft, AlignCenter, AlignRight, Smile].map((Icon, i) => (
+                                    <Button
+                                        key={i}
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground hover:bg-accent/50 rounded-sm transition-colors duration-150"
+                                    >
+                                        <Icon className="h-4 w-4" />
+                                    </Button>
+                                ))}
+                            </div>
+                        </div>
+                        <Textarea
+                            placeholder="Enter question description"
+                            value={description}
+                            onChange={(e) => setDescription(e.target.value)}
+                            className="min-h-[150px] bg-background border border-border border-t-0 rounded-t-none text-foreground placeholder-muted-foreground focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
+                        />
+                        <Input
+                            placeholder="Enter tags (space-separated, max 5)"
+                            value={tagInput}
+                            onChange={(e) => setTagInput(e.target.value)}
+                            onKeyDown={handleTagKeyPress}
+                            className="rounded-md border border-input bg-background text-foreground placeholder-muted-foreground focus:ring-2 focus:ring-primary focus:border-transparent"
+                        />
+                        <div className="flex flex-wrap gap-2">
+                            {tags.map((tag) => (
+                                <Badge
+                                    key={tag}
+                                    onClick={() => removeTag(tag)}
+                                    className="bg-accent text-accent-foreground hover:bg-accent/80 cursor-pointer px-3 py-1 rounded-md transition-colors duration-150"
+                                >
+                                    {tag} <X className="ml-1 h-3 w-3" />
+                                </Badge>
+                            ))}
+                        </div>
+                        <div className="flex justify-end gap-3">
+                            <Button
+                                variant="outline"
+                                onClick={() => setIsAskModalOpen(false)}
+                                className="border-border text-foreground hover:bg-muted hover:text-foreground rounded-md"
+                            >
+                                Cancel
+                            </Button>
+                            <Button
+                                onClick={handlePost}
+                                className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-md"
+                                disabled={!(title.trim() && description.trim() && tags.length > 0)}
+                            >
+                                Post
+                            </Button>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
