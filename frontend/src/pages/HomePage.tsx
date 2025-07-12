@@ -118,40 +118,44 @@ export default function HomePage() {
     }, [searchQuery, selectedSort, selectedCategories]);
 
     return (
-        <div className="space-y-6">
-            <div className='md:flex gap-3'>
-                <div className="w-full md:w-4/5">
-                    <form onSubmit={(e) => e.preventDefault()} className="relative">
-                        <input
+        <div className="container mx-auto px-4 py-8 space-y-6 bg-background text-foreground min-h-screen">
+            {/* Search and Ask Question Section */}
+            <div className="flex flex-col md:flex-row gap-4">
+                <div className="relative flex-1">
+                    <form onSubmit={(e) => e.preventDefault()}>
+                        <Input
                             type="text"
                             placeholder="Search questions..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full bg-background border border-foreground/10 py-2 pl-4 pr-10 rounded-lg focus:outline-none focus:ring-1 focus:ring-foreground/40"
+                            className="w-full pl-10 pr-4 py-3 rounded-md border border-input bg-background text-foreground placeholder-muted-foreground focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
                         />
-                        <button className="absolute inset-y-0 right-0 flex items-center pr-3">
-                            <Search className="h-5 w-5 text-foreground" />
-                        </button>
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                     </form>
                 </div>
                 <button
-                    className='border border-1 bg-foreground/20 border-foreground/10 py-2 rounded-lg w-full md:w-1/5 hover:bg-foreground/30 transition-colors'
+                    className="px-4 py-3 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors duration-200 font-medium"
                     onClick={() => navigate('/ask')}
                 >
                     Ask New Question
                 </button>
             </div>
 
-            <div className="flex items-start gap-4">
+            {/* Filters Section */}
+            <div className="flex flex-col md:flex-row gap-4">
                 <div className="flex-1">
-                    <label className="block text-sm font-medium text-foreground/60 mb-2">Sort by</label>
+                    <label className="block text-sm font-medium text-muted-foreground mb-2">Sort by</label>
                     <Select value={selectedSort} onValueChange={setSelectedSort}>
-                        <SelectTrigger className="w-full">
+                        <SelectTrigger className="w-full bg-background border border-input rounded-md text-foreground focus:ring-2 focus:ring-primary focus:border-transparent">
                             <SelectValue placeholder="Select sort option" />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="bg-background border border-border text-foreground">
                             {sortOptions.map(option => (
-                                <SelectItem key={option.value} value={option.value}>
+                                <SelectItem
+                                    key={option.value}
+                                    value={option.value}
+                                    className="hover:bg-accent hover:text-accent-foreground"
+                                >
                                     {option.label}
                                 </SelectItem>
                             ))}
@@ -160,93 +164,113 @@ export default function HomePage() {
                 </div>
 
                 <div className="flex-1 relative">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-muted-foreground mb-2">
                         Categories ({selectedCategories.length} selected)
                     </label>
-                    <div className="relative">
-                        <button
-                            type="button"
-                            onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
-                            className="w-full px-3 py-2 border border-foreground/10 rounded-lg focus:ring-1 focus:ring-foreground/40 bg-background text-left flex items-center justify-between"
-                        >
-                            <span className="text-sm text-gray-700">
-                                {selectedCategories.length === 0 ? "Select categories..." : `${selectedCategories.length} selected`}
-                            </span>
-                            <ChevronDown className={`h-4 w-4 transition-transform ${showCategoryDropdown ? 'rotate-180' : ''}`} />
-                        </button>
+                    <button
+                        type="button"
+                        onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
+                        className="w-full px-4 py-3 border border-input rounded-md bg-background text-foreground text-left flex items-center justify-between focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
+                    >
+                        <span className="text-sm">
+                            {selectedCategories.length === 0 ? "Select categories..." : `${selectedCategories.length} selected`}
+                        </span>
+                        <ChevronDown className={`h-5 w-5 transition-transform duration-200 ${showCategoryDropdown ? 'rotate-180' : ''}`} />
+                    </button>
 
-                        {showCategoryDropdown && (
-                            <div className="absolute z-10 w-full mt-1 bg-background border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                                <div className="p-2">
-                                    {categoryOptions.map(option => (
-                                        <label key={option.value} className="flex items-center gap-2 p-2 hover:bg-gray-50 cursor-pointer rounded">
-                                            <Input
-                                                type="checkbox"
-                                                checked={selectedCategories.includes(option.value)}
-                                                onChange={() => handleCategoryToggle(option.value)}
-                                                className="w-4 h-4"
-                                            />
-                                            <span className="text-sm flex items-center gap-1">
-                                                {option.emoji} {option.label}
-                                            </span>
-                                        </label>
-                                    ))}
-                                </div>
-                                <div className="border-t border-gray-200 p-2">
-                                    <button
-                                        onClick={() => setSelectedCategories([])}
-                                        className="w-full text-xs text-red-600 hover:text-red-800"
+                    {showCategoryDropdown && (
+                        <div className="absolute z-10 w-full mt-2 bg-background border border-border rounded-md shadow-lg max-h-80 overflow-y-auto">
+                            <div className="p-3 space-y-1">
+                                {categoryOptions.map(option => (
+                                    <label
+                                        key={option.value}
+                                        className="flex items-center gap-2 p-2 hover:bg-accent hover:text-accent-foreground cursor-pointer rounded-md transition-colors duration-150"
                                     >
-                                        Clear all categories
-                                    </button>
-                                </div>
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedCategories.includes(option.value)}
+                                            onChange={() => handleCategoryToggle(option.value)}
+                                            className="h-4 w-4 text-primary border-input rounded focus:ring-primary"
+                                        />
+                                        <span className="text-sm flex items-center gap-1.5">
+                                            {option.emoji} {option.label}
+                                        </span>
+                                    </label>
+                                ))}
                             </div>
-                        )}
-                    </div>
+                            <div className="border-t border-border p-3">
+                                <button
+                                    onClick={() => setSelectedCategories([])}
+                                    className="w-full text-sm text-destructive hover:text-destructive/80 transition-colors duration-150"
+                                >
+                                    Clear all categories
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
 
+            {/* Clear Filters Button */}
+            {(searchQuery || selectedCategories.length > 0 || selectedSort !== 'newest') && (
+                <button
+                    onClick={clearFilters}
+                    className="text-sm text-destructive hover:text-destructive/80 underline transition-colors duration-150"
+                >
+                    Clear all filters
+                </button>
+            )}
+
+            {/* Questions List */}
             <div className="space-y-4">
                 {loading ? (
-                    <p>Loading questions...</p>
+                    <p className="text-center text-muted-foreground">Loading questions...</p>
+                ) : questions.length === 0 ? (
+                    <p className="text-center text-muted-foreground">No questions found.</p>
                 ) : (
                     questions.map((question) => (
-                        <Card key={question._id}>
+                        <Card
+                            key={question._id}
+                            className="bg-card border border-border rounded-md shadow-sm hover:shadow-md transition-shadow duration-200"
+                        >
                             <CardContent className="p-6">
                                 <div className="flex gap-4">
-                                    <div className="flex flex-col items-center space-y-2 text-sm text-gray-500 min-w-[60px]">
+                                    <div className="flex flex-col items-center space-y-3 text-sm text-muted-foreground min-w-[80px]">
                                         <div className="text-center">
-                                            <div className="font-semibold">{question.votes.length}</div>
-                                            <div>votes</div>
+                                            <div className="font-semibold text-foreground">{question.votes.length}</div>
+                                            <div>Votes</div>
                                         </div>
-                                        <div className="text-center px-2 py-1 rounded bg-green-600 text-white">
+                                        <div className="text-center px-3 py-1.5 rounded bg-primary text-primary-foreground">
                                             <div className="font-semibold">0</div>
-                                            <div className="text-xs">answers</div>
+                                            <div className="text-xs">Answers</div>
                                         </div>
                                     </div>
 
                                     <div className="flex-1">
-                                        <h3 className="text-lg font-semibold text-blue-700 hover:text-blue-600 mb-2 cursor-pointer">
+                                        <h3
+                                            className="text-lg font-semibold text-primary hover:text-primary/80 mb-3 cursor-pointer transition-colors duration-150"
+                                            onClick={() => navigate(`/question/${question._id}`)}
+                                        >
                                             {question.title}
                                         </h3>
-                                        <p className="text-gray-600 mb-4 line-clamp-2">{question.description}</p>
+                                        <p className="text-muted-foreground mb-4 line-clamp-2">{question.description}</p>
 
                                         <div className="flex flex-wrap gap-2 mb-4">
                                             {question.tags.map((tag) => (
-                                                <div
+                                                <span
                                                     key={tag}
-                                                    className="bg-blue-300/20 rounded-md px-4 text-sm text-blue-600 hover:bg-blue-500/30"
+                                                    className="bg-accent text-accent-foreground rounded-md px-3 py-1 text-sm hover:bg-accent/80 transition-colors duration-150"
                                                 >
                                                     {tag}
-                                                </div>
+                                                </span>
                                             ))}
                                         </div>
 
-                                        <div className="flex items-center justify-between text-sm text-gray-400">
-                                            <div className="flex items-center space-x-2">
-                                                <Avatar className="h-6 w-6">
-                                                    <AvatarImage src={"/placeholder.svg"} />
-                                                    <AvatarFallback className='bg-blue-700 text-white'>
+                                        <div className="flex items-center justify-between text-sm text-muted-foreground">
+                                            <div className="flex items-center gap-2">
+                                                <Avatar className="h-8 w-8">
+                                                    <AvatarImage src="/placeholder.svg" />
+                                                    <AvatarFallback className="bg-primary text-primary-foreground">
                                                         {question.author.name[0].toUpperCase()}
                                                     </AvatarFallback>
                                                 </Avatar>

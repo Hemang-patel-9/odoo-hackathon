@@ -1,474 +1,176 @@
-"use client"
+"use client";
 
-import { useState } from "react"
+import React, { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import { Card, CardContent } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Question } from "@/types/question";
+import { Answer } from "@/types/answer";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 import {
-    ArrowLeft,
-    ChevronUp,
-    ChevronDown,
-    Check,
-    Share,
-    Bookmark,
-    Flag,
-    Bold,
-    Italic,
-    List,
-    Link2,
-    Image,
-    AlignLeft,
-    AlignCenter,
-    AlignRight,
-    Smile,
-    Reply,
-    X,
-} from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
-import { Badge } from "@/components/ui/badge"
-import { Card, CardContent } from "@/components/ui/card"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Separator } from "@/components/ui/separator"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+    Bold, Italic, List, Link2, Image,
+    AlignLeft, AlignCenter, AlignRight, Smile
+} from "lucide-react";
 
-const questionData = {
-    id: 1,
-    title: "How to implement JWT authentication in React?",
-    description: `I'm trying to implement JWT authentication in my React application but facing issues with token storage and validation. Here's what I've tried so far:
+export default function QuestionDetailPage() {
+    const { id } = useParams();
+    const [question, setQuestion] = useState<Question | null>(null);
+    const [answers, setAnswers] = useState<Answer[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [isReplyModalOpen, setIsReplyModalOpen] = useState(false);
+    const [replyText, setReplyText] = useState("");
 
-1. Storing the token in localStorage
-2. Creating an auth context
-3. Setting up protected routes
+    useEffect(() => {
+        const fetchQuestion = async () => {
+            try {
+                const res = await fetch(`${import.meta.env.VITE_APP_API_URL}/questions/${id}`);
+                const json = await res.json();
+                if (!res.ok) throw new Error(json.message);
+                setQuestion(json.data);
+            } catch (err) {
+                console.error("Error fetching question:", err);
+            }
+        };
 
-The problem is that the token seems to expire randomly and users get logged out unexpectedly. I'm also concerned about security implications of storing JWT in localStorage.
+        const fetchAnswers = async () => {
+            try {
+                const res = await fetch(`${import.meta.env.VITE_APP_API_URL}/answers/question/${id}`);
+                const json = await res.json();
+                if (!res.ok) throw new Error(json.message);
+                setAnswers(json.data);
+            } catch (err) {
+                console.error("Error fetching answers:", err);
+            } finally {
+                setLoading(false);
+            }
+        };
 
-Here's my current auth context implementation:
+        fetchQuestion();
+        fetchAnswers();
+    }, [id]);
 
-\`\`\`javascript
-const AuthContext = createContext();
+    const handleReplySubmit = async () => {
+        try {
+            const user = JSON.parse(localStorage.getItem("user") || "{}");
 
-export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem('token'));
-
-  // Login function
-  const login = async (credentials) => {
-    const response = await fetch('/api/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(credentials)
-    });
-    
-    const data = await response.json();
-    localStorage.setItem('token', data.token);
-    setToken(data.token);
-    setUser(data.user);
-  };
-
-  return (
-    <AuthContext.Provider value={{ user, token, login }}>
-      {children}
-    </AuthContext.Provider>
-  );
-};
-\`\`\`
-
-What am I doing wrong? Are there better approaches for handling JWT authentication in React?`,
-    author: "john_dev",
-    avatar: "/placeholder.svg?height=40&width=40",
-    votes: 15,
-    views: 127,
-    tags: ["React", "JWT", "Authentication"],
-    timeAgo: "2 hours ago",
-    isAnswered: true,
-}
-
-const answers = [
-    {
-        id: 1,
-        content: `Great question! There are several issues with your current implementation and better approaches you can take:
-
-## Issues with your current approach:
-
-1. **localStorage security concerns**: Storing JWT in localStorage makes it vulnerable to XSS attacks
-2. **No token refresh logic**: You're not handling token expiration properly
-3. **Missing token validation**: No checks for token validity on app initialization
-
-## Better approach:
-
-### 1. Use httpOnly cookies instead of localStorage
-
-\`\`\`javascript
-// Instead of localStorage, use httpOnly cookies
-const login = async (credentials) => {
-  const response = await fetch('/api/login', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(credentials),
-    credentials: 'include' // Important for cookies
-  });
-  
-  // Token is set as httpOnly cookie by server
-  const data = await response.json();
-  setUser(data.user);
-};
-\`\`\`
-
-### 2. Implement token refresh logic
-
-\`\`\`javascript
-const useAuth = () => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const response = await fetch('/api/me', {
-          credentials: 'include'
-        });
-        
-        if (response.ok) {
-          const userData = await response.json();
-          setUser(userData);
+            const res = await fetch(`${import.meta.env.VITE_APP_API_URL}/answers/${id}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    content: replyText,
+                    author: user.id,
+                })
+            });
+            const json = await res.json();
+            if (!res.ok) throw new Error(json.message);
+            await fetchAnswers();
+            setReplyText("");
+            setIsReplyModalOpen(false);
+        } catch (err) {
+            console.error("Error posting reply:", err);
         }
-      } catch (error) {
-        console.error('Auth check failed:', error);
-      } finally {
-        setLoading(false);
-      }
     };
 
-    checkAuth();
-  }, []);
-
-  return { user, loading };
-};
-\`\`\`
-
-### 3. Set up axios interceptors for automatic token refresh
-
-This approach is much more secure and handles token expiration gracefully.`,
-        author: "sarah_security",
-        avatar: "/placeholder.svg?height=32&width=32",
-        votes: 23,
-        timeAgo: "1 hour ago",
-        isAccepted: true,
-    },
-    {
-        id: 2,
-        content: `I'd also recommend looking into **React Query** or **SWR** for handling authentication state and API calls. They provide excellent caching and error handling capabilities.
-
-Here's a simple example with React Query:
-
-\`\`\`javascript
-import { useQuery, useMutation, useQueryClient } from 'react-query';
-
-const useAuth = () => {
-  return useQuery('auth', async () => {
-    const response = await fetch('/api/me', {
-      credentials: 'include'
-    });
-    
-    if (!response.ok) {
-      throw new Error('Not authenticated');
-    }
-    
-    return response.json();
-  }, {
-    retry: false,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
-};
-
-const useLogin = () => {
-  const queryClient = useQueryClient();
-  
-  return useMutation(async (credentials) => {
-    const response = await fetch('/api/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(credentials),
-      credentials: 'include'
-    });
-    
-    if (!response.ok) {
-      throw new Error('Login failed');
-    }
-    
-    return response.json();
-  }, {
-    onSuccess: () => {
-      queryClient.invalidateQueries('auth');
-    }
-  });
-};
-\`\`\`
-
-This approach gives you automatic retries, caching, and better error handling.`,
-        author: "mike_react",
-        avatar: "/placeholder.svg?height=32&width=32",
-        votes: 8,
-        timeAgo: "45 minutes ago",
-        isAccepted: false,
-    },
-]
-
-export default function OneQuestion() {
-    const [questionVotes, setQuestionVotes] = useState(questionData.votes)
-    const [answerVotes, setAnswerVotes] = useState(answers.map((a) => a.votes))
-    const [newAnswer, setNewAnswer] = useState("")
-    const [replyText, setReplyText] = useState("")
-    const [isReplyModalOpen, setIsReplyModalOpen] = useState(false)
-    const [replyingTo, setReplyingTo] = useState(null)
-
-    const handleQuestionVote = (direction: any) => {
-        setQuestionVotes((prev) => (direction === "up" ? prev + 1 : prev - 1))
-    }
-
-    const handleAnswerVote = (index: any, direction: any) => {
-        setAnswerVotes((prev) =>
-            prev.map((votes, i) => (i === index ? (direction === "up" ? votes + 1 : votes - 1) : votes)),
-        )
-    }
-
-    const handleReplyClick = (type, id = null) => {
-        setReplyingTo({ type, id })
-        setIsReplyModalOpen(true)
-        setReplyText("")
-    }
-
-    const handleReplySubmit = () => {
-        // Handle reply submission logic here
-        console.log("Reply submitted:", replyText)
-        setIsReplyModalOpen(false)
-        setReplyText("")
-        setReplyingTo(null)
-    }
-
-    const navigate = (path: any) => {
-        // Mock navigation function
-        console.log("Navigate to:", path)
-    }
+    if (loading) return <p className="text-center mt-10 text-muted-foreground">Loading...</p>;
+    if (!question) return <p className="text-center mt-10 text-muted-foreground">Question not found</p>;
 
     return (
-        <div className="min-h-screen bg-background text-white">
-            {/* Header */}
-            <header className="border-b border-gray-800 bg-foreground/10 backdrop-blur-sm">
-                <div className="container mx-auto px-4 py-4">
-                    <div className="flex items-center space-x-4 text-foreground/60">
-                        <Button onClick={() => navigate('/')} variant="ghost" size="icon" className=" hover:bg-foreground/10">
-                            <ArrowLeft className="h-5 w-5" />
-                        </Button>
-                        <div className="flex-1">
-                            <h1 className="text-xl font-semibold text-foreground/80">{questionData.title}</h1>
-                            <div className="flex items-center space-x-4 text-sm text-foreground/50 mt-1">
-                                <span>Asked {questionData.timeAgo}</span>
-                                <span>Viewed {questionData.views} times</span>
-                            </div>
-                        </div>
+        <div className="container mx-auto px-4 py-8 space-y-8 bg-background text-foreground min-h-screen">
+            {/* Question Section */}
+            <Card className="bg-card border border-border rounded-md shadow-sm hover:shadow-md transition-shadow duration-200">
+                <CardContent className="p-6 space-y-4">
+                    <h1 className="text-2xl font-semibold text-primary hover:text-primary/80 transition-colors duration-150">{question.title}</h1>
+                    <p className="text-muted-foreground text-base leading-relaxed">{question.description}</p>
+
+                    <div className="flex flex-wrap gap-2">
+                        {question.tags.map(tag => (
+                            <span
+                                key={tag}
+                                className="bg-accent text-accent-foreground px-3 py-1 rounded-md text-sm font-medium hover:bg-accent/80 transition-colors duration-150"
+                            >
+                                #{tag}
+                            </span>
+                        ))}
                     </div>
-                </div>
-            </header>
 
-            <div className="container mx-auto px-4 py-8 max-w-6xl">
-                <div className="grid gap-8">
-                    {/* Main Content */}
-                    <div className="lg:col-span-3">
-                        {/* Question */}
-                        <Card className="bg-background border-foreground/10">
+                    <div className="flex items-center justify-between text-sm text-muted-foreground pt-4 border-t border-border">
+                        <div className="flex items-center gap-2">
+                            <Avatar className="h-8 w-8">
+                                <AvatarImage src="/placeholder.svg" />
+                                <AvatarFallback className="bg-primary text-primary-foreground">
+                                    {question.author.name[0].toUpperCase()}
+                                </AvatarFallback>
+                            </Avatar>
+                            <span>{question.author.name}</span>
+                        </div>
+                        <span>{new Date(question.createdAt).toLocaleDateString()}</span>
+                    </div>
+                </CardContent>
+            </Card>
+
+            {/* Answers Section */}
+            <div className="flex justify-between items-center">
+                <h2 className="text-xl font-semibold text-foreground">Answers ({answers.length})</h2>
+                <Button
+                    onClick={() => setIsReplyModalOpen(true)}
+                    className="bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 transition-colors duration-200"
+                >
+                    Add Answer
+                </Button>
+            </div>
+
+            {answers.length === 0 ? (
+                <p className="text-muted-foreground text-center">No answers yet.</p>
+            ) : (
+                <div className="space-y-4">
+                    {answers.map((answer) => (
+                        <Card
+                            key={answer._id}
+                            className="bg-card border border-border border-l-4 border-primary rounded-md shadow-sm hover:shadow-md transition-shadow duration-200"
+                        >
                             <CardContent className="p-6">
-                                <div className="flex gap-6">
-                                    {/* Vote Section */}
-                                    <div className="flex flex-col items-center space-y-2">
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            onClick={() => handleQuestionVote("up")}
-                                            className="text-foreground/40 hover:text-green-400"
-                                        >
-                                            <ChevronUp className="h-6 w-6" />
-                                        </Button>
-                                        <span className="text-xl font-semibold">{questionVotes}</span>
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            onClick={() => handleQuestionVote("down")}
-                                            className="text-foreground/40 hover:text-red-400"
-                                        >
-                                            <ChevronDown className="h-6 w-6" />
-                                        </Button>
+                                <p className="text-foreground mb-4 leading-relaxed">{answer.content}</p>
+
+                                <div className="flex items-center justify-between text-sm text-muted-foreground">
+                                    <div className="flex items-center gap-2">
+                                        <Avatar className="h-8 w-8">
+                                            <AvatarImage src="/placeholder.svg" />
+                                            <AvatarFallback className="bg-primary text-primary-foreground">
+                                                {answer.author.name[0].toUpperCase()}
+                                            </AvatarFallback>
+                                        </Avatar>
+                                        <span>{answer.author.name}</span>
                                     </div>
-
-                                    {/* Question Content */}
-                                    <div className="flex-1">
-                                        <div className="prose prose-invert max-w-none mb-6">
-                                            <div className="whitespace-pre-wrap text-foreground leading-relaxed">
-                                                {questionData.description}
-                                            </div>
-                                        </div>
-
-                                        <div className="flex flex-wrap gap-2 mb-6">
-                                            {questionData.tags.map((tag) => (
-                                                <Badge key={tag} variant="secondary" className="bg-blue-600/20 text-blue-300">
-                                                    {tag}
-                                                </Badge>
-                                            ))}
-                                        </div>
-
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center space-x-4">
-                                                <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
-                                                    <Share className="h-4 w-4 mr-2" />
-                                                    Share
-                                                </Button>
-                                                <Button
-                                                    onClick={() => handleReplyClick("question", questionData.id)}
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    className="text-gray-400 hover:text-white"
-                                                >
-                                                    <Reply className="h-4 w-4 mr-2" />
-                                                    Reply
-                                                </Button>
-                                            </div>
-
-                                            <div className="flex items-center space-x-2 text-sm">
-                                                <Avatar className="h-8 w-8">
-                                                    <AvatarImage src={questionData.avatar || "/placeholder.svg"} />
-                                                    <AvatarFallback>{questionData.author[0].toUpperCase()}</AvatarFallback>
-                                                </Avatar>
-                                                <div>
-                                                    <div className="text-blue-400">{questionData.author}</div>
-                                                    <div className="text-gray-400">{questionData.timeAgo}</div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
+                                    <span>{new Date(answer.createdAt).toLocaleDateString()}</span>
                                 </div>
                             </CardContent>
                         </Card>
-
-                        {/* Answers */}
-                        <div>
-                            <h2 className="text-2xl font-semibold mb-6">{answers.length} Answers</h2>
-                            <div className="space-y-6">
-                                {answers.map((answer, index) => (
-                                    <Card key={answer.id} className="bg-foreground/10 border-foreground/20">
-                                        <CardContent className="p-6">
-                                            <div className="flex gap-6">
-                                                {/* Vote Section */}
-                                                <div className="flex flex-col items-center space-y-2">
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        onClick={() => handleAnswerVote(index, "up")}
-                                                        className="text-foreground/40 hover:text-green-400"
-                                                    >
-                                                        <ChevronUp className="h-6 w-6" />
-                                                    </Button>
-                                                    <span className="text-xl font-semibold">{answerVotes[index]}</span>
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        onClick={() => handleAnswerVote(index, "down")}
-                                                        className="text-foreground/40 hover:text-red-400"
-                                                    >
-                                                        <ChevronDown className="h-6 w-6" />
-                                                    </Button>
-                                                    {answer.isAccepted && (
-                                                        <div className="bg-green-600 rounded-full p-1">
-                                                            <Check className="h-4 w-4 text-background" />
-                                                        </div>
-                                                    )}
-                                                </div>
-
-                                                {/* Answer Content */}
-                                                <div className="flex-1">
-                                                    <div className="prose prose-invert max-w-none mb-6">
-                                                        <div className="whitespace-pre-wrap text-foreground leading-relaxed">{answer.content}</div>
-                                                    </div>
-
-                                                    <div className="flex items-center justify-between">
-                                                        <div className="flex items-center space-x-4">
-                                                            <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
-                                                                <Share className="h-4 w-4 mr-2" />
-                                                                Share
-                                                            </Button>
-                                                            <Button
-                                                                onClick={() => handleReplyClick("answer", answer.id)}
-                                                                variant="ghost"
-                                                                size="sm"
-                                                                className="text-gray-400 hover:text-white"
-                                                            >
-                                                                <Reply className="h-4 w-4 mr-2" />
-                                                                Reply
-                                                            </Button>
-                                                        </div>
-
-                                                        <div className="flex items-center space-x-2 text-sm">
-                                                            <Avatar className="h-8 w-8">
-                                                                <AvatarImage src={answer.avatar || "/placeholder.svg"} />
-                                                                <AvatarFallback className="bg-blue-700 text-background">{answer.author[0].toUpperCase()}</AvatarFallback>
-                                                            </Avatar>
-                                                            <div>
-                                                                <div className="text-blue-400">{answer.author}</div>
-                                                                <div className="text-gray-400">{answer.timeAgo}</div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </CardContent>
-                                    </Card>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
+                    ))}
                 </div>
-            </div>
+            )}
 
             {/* Reply Modal */}
             <Dialog open={isReplyModalOpen} onOpenChange={setIsReplyModalOpen}>
-                <DialogContent className="bg-gray-900 border-gray-700 text-white max-w-2xl">
+                <DialogContent className="bg-background border border-border text-foreground max-w-2xl rounded-md">
                     <DialogHeader>
-                        <DialogTitle className="text-xl font-semibold">
-                            Reply to question
-                        </DialogTitle>
+                        <DialogTitle className="text-xl font-semibold text-foreground">Reply to Question</DialogTitle>
                     </DialogHeader>
 
                     <div className="space-y-4">
-                        {/* Rich Text Editor Toolbar for Reply */}
-                        <div className="border border-gray-700 rounded-t-md bg-gray-800 p-2 mb-0">
+                        <div className="border border-border rounded-t-md bg-muted p-2">
                             <div className="flex flex-wrap gap-1">
-                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-gray-400 hover:text-white">
-                                    <Bold className="h-4 w-4" />
-                                </Button>
-                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-gray-400 hover:text-white">
-                                    <Italic className="h-4 w-4" />
-                                </Button>
-                                <Separator orientation="vertical" className="h-6 mx-1 bg-gray-600" />
-                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-gray-400 hover:text-white">
-                                    <List className="h-4 w-4" />
-                                </Button>
-                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-gray-400 hover:text-white">
-                                    <Link2 className="h-4 w-4" />
-                                </Button>
-                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-gray-400 hover:text-white">
-                                    <Image className="h-4 w-4" />
-                                </Button>
-                                <Separator orientation="vertical" className="h-6 mx-1 bg-gray-600" />
-                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-gray-400 hover:text-white">
-                                    <AlignLeft className="h-4 w-4" />
-                                </Button>
-                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-gray-400 hover:text-white">
-                                    <AlignCenter className="h-4 w-4" />
-                                </Button>
-                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-gray-400 hover:text-white">
-                                    <AlignRight className="h-4 w-4" />
-                                </Button>
-                                <Separator orientation="vertical" className="h-6 mx-1 bg-gray-600" />
-                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-gray-400 hover:text-white">
-                                    <Smile className="h-4 w-4" />
-                                </Button>
+                                {[Bold, Italic, List, Link2, Image, AlignLeft, AlignCenter, AlignRight, Smile].map((Icon, i) => (
+                                    <Button
+                                        key={i}
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground hover:bg-accent/50 rounded-sm transition-colors duration-150"
+                                    >
+                                        <Icon className="h-4 w-4" />
+                                    </Button>
+                                ))}
                             </div>
                         </div>
 
@@ -476,20 +178,20 @@ export default function OneQuestion() {
                             placeholder="Write your reply here..."
                             value={replyText}
                             onChange={(e) => setReplyText(e.target.value)}
-                            className="min-h-[150px] bg-gray-800 border-gray-700 border-t-0 rounded-t-none text-white placeholder-gray-400 resize-none"
+                            className="min-h-[150px] bg-background border border-border border-t-0 rounded-t-none text-foreground placeholder-muted-foreground focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
                         />
 
-                        <div className="flex justify-end space-x-3">
+                        <div className="flex justify-end gap-3">
                             <Button
                                 variant="outline"
                                 onClick={() => setIsReplyModalOpen(false)}
-                                className="border-gray-600 text-gray-300 hover:bg-gray-800"
+                                className="border-border text-foreground hover:bg-muted hover:text-foreground rounded-md"
                             >
                                 Cancel
                             </Button>
                             <Button
                                 onClick={handleReplySubmit}
-                                className="bg-blue-600 hover:bg-blue-700"
+                                className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-md"
                                 disabled={!replyText.trim()}
                             >
                                 Post Reply
@@ -499,5 +201,5 @@ export default function OneQuestion() {
                 </DialogContent>
             </Dialog>
         </div>
-    )
+    );
 }
