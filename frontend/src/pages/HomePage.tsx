@@ -1,9 +1,8 @@
 "use client"
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Filter, ChevronDown, ChevronUp, Bookmark, Badge, Share, Flag } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Search, ChevronDown } from 'lucide-react';
 import {
     Select,
     SelectContent,
@@ -14,7 +13,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-
+import axios from 'axios'
 export default function HomePage() {
     const navigate = useNavigate();
     const [searchQuery, setSearchQuery] = useState('');
@@ -63,50 +62,65 @@ export default function HomePage() {
         setSearchQuery('');
     };
 
-    const questions = [
-        {
-            id: 1,
-            title: "How to implement JWT authentication in React?",
-            description:
-                "I'm trying to implement JWT authentication in my React application but facing issues with token storage and validation...",
-            author: "john_dev",
-            avatar: "/placeholder.svg?height=32&width=32",
-            votes: 15,
-            answers: 3,
-            views: 127,
-            tags: ["React", "JWT", "Authentication"],
-            timeAgo: "2 hours ago",
-            isAnswered: true,
-        },
-        {
-            id: 2,
-            title: "Best practices for state management in large React apps?",
-            description:
-                "What are the recommended patterns for managing complex state in large-scale React applications? Should I use Redux, Zustand, or Context API?",
-            author: "sarah_codes",
-            avatar: "/placeholder.svg?height=32&width=32",
-            votes: 23,
-            answers: 7,
-            views: 245,
-            tags: ["React", "State Management", "Redux", "Zustand"],
-            timeAgo: "4 hours ago",
-            isAnswered: true,
-        },
-        {
-            id: 3,
-            title: "How to optimize database queries in Node.js?",
-            description:
-                "My Node.js application is experiencing slow database queries. What are some optimization techniques I can implement?",
-            author: "mike_backend",
-            avatar: "/placeholder.svg?height=32&width=32",
-            votes: 8,
-            answers: 2,
-            views: 89,
-            tags: ["Node.js", "Database", "Performance"],
-            timeAgo: "6 hours ago",
-            isAnswered: false,
-        },
-    ]
+
+
+    const [questions, setQuestions] = useState([]);
+    const [loading, setLoading] = useState(true);
+    useEffect(() => {
+        // Define async function inside useEffect
+        const fetchData = async () => {
+            try {
+                const response = await axios.get(`${process.env.VITE_APP_API_URL}/`);
+                setQuestions(response.data);
+                setLoading(false);
+            } catch (err) {
+                console.error(err);
+                setLoading(false);
+            }
+        };
+
+        fetchData();
+        console.log(questions);
+    }, []);
+
+    // const questions = [
+    //     {
+    //         id: 1,
+    //         title: "How to implement JWT authentication in React?",
+    //         description:
+    //             "I'm trying to implement JWT authentication in my React application but facing issues with token storage and validation...",
+    //         author: "john_dev",
+    //         avatar: "/placeholder.svg?height=32&width=32",
+    //         votes: 15,
+    //         answers: 3,
+    //         tags: ["React", "JWT", "Authentication"],
+    //         timeAgo: "2 hours ago",
+    //     },
+    //     {
+    //         id: 2,
+    //         title: "Best practices for state management in large React apps?",
+    //         description:
+    //             "What are the recommended patterns for managing complex state in large-scale React applications? Should I use Redux, Zustand, or Context API?",
+    //         author: "sarah_codes",
+    //         avatar: "/placeholder.svg?height=32&width=32",
+    //         votes: 23,
+    //         answers: 7,
+    //         tags: ["React", "State Management", "Redux", "Zustand"],
+    //         timeAgo: "2 hours ago",
+    //     },
+    //     {
+    //         id: 3,
+    //         title: "How to optimize database queries in Node.js?",
+    //         description:
+    //             "My Node.js application is experiencing slow database queries. What are some optimization techniques I can implement?",
+    //         author: "mike_backend",
+    //         avatar: "/placeholder.svg?height=32&width=32",
+    //         votes: 8,
+    //         answers: 2,
+    //         tags: ["Node.js", "Database", "Performance"],
+    //         timeAgo: "2 hours ago",
+    //     },
+    // ]
     return (
         <div className="space-y-4">
             {/* Search Bar and Ask Question Button */}
@@ -254,14 +268,10 @@ export default function HomePage() {
                                             <div>votes</div>
                                         </div>
                                         <div
-                                            className={`text-center px-2 py-1 rounded ${question.isAnswered ? "bg-green-600 text-white" : "border border-gray-600"}`}
+                                            className={`text-center px-2 py-1 rounded bg-green-600 text-background`}
                                         >
                                             <div className="font-semibold">{question.answers}</div>
                                             <div className="text-xs">answers</div>
-                                        </div>
-                                        <div className="text-center">
-                                            <div className="font-semibold text-foreground">{question.views}</div>
-                                            <div>views</div>
                                         </div>
                                     </div>
 
@@ -288,7 +298,7 @@ export default function HomePage() {
                                             <div className="flex items-center space-x-2">
                                                 <Avatar className="h-6 w-6">
                                                     <AvatarImage src={question.avatar || "/placeholder.svg"} />
-                                                    <AvatarFallback>{question.author[0].toUpperCase()}</AvatarFallback>
+                                                    <AvatarFallback className='bg-blue-700 text-background'>{question.author[0].toUpperCase()}</AvatarFallback>
                                                 </Avatar>
                                                 <span>{question.author}</span>
                                             </div>

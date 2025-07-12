@@ -2,6 +2,10 @@ require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const userRoutes = require('./routes/user.routes.js')
+const questionRoutes = require('./routes/question.routes.js')
+const answerRoutes = require('./routes/answer.routes.js')
+const notificationRoutes = require('./routes/notification.routes.js')
 
 const { connectDB } = require('./connection.js');
 const app = express();
@@ -16,12 +20,17 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
+app.use("/user", userRoutes);
+app.use("/questions", questionRoutes);
+app.use("/answers", answerRoutes);
+app.use("/notifications", notificationRoutes)
 
 connectDB();
 // Routes
 app.get('/', (req, res) => {
 	res.send('Welcome to the API!');
 });
+
 
 //middlewares
 //app.use("/r", func)
