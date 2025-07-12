@@ -65,7 +65,7 @@ const voteQuestion = async (req, res) => {
             } else {
                 question.votes[existingVoteIndex].vote = voteType;
             }
-        } else {
+        } else {    
             question.votes.push({ user: userId, vote: voteType });
         }
 

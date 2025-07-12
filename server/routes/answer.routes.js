@@ -7,5 +7,6 @@ router.post("/:questionId", answerController.postAnswer);
 router.get("/question/:questionId", answerController.getAnswersByQuestion);
 router.post("/:answerId/vote", answerController.voteAnswer);
 router.delete("/:id", answerController.deleteAnswer);
+router.post("/accept", answerController.acceptAnswer);
 
 module.exports = router;

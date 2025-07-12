@@ -49,7 +49,7 @@ export default function LoginForm() {
           description: "Login successfully.",
           variant: "success",
         });
-        navigate("/dashboard");
+        navigate(`/${data.data.id}`);
       } else {
         toast({
           title: "Error",

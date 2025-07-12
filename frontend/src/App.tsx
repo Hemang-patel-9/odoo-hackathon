@@ -11,6 +11,8 @@ import HomePage from "./pages/HomePage"
 import AskQuestionPage from "./pages/AskQuestionPage"
 import OneQuestion from "./pages/OneQuestion"
 import ProfilePage from "./pages/ProfilePage"
+import EditProfile from "./pages/Profile"
+import AdminPanel from "./pages/AdminPage"
 
 export default function App() {
   return (
@@ -26,7 +28,9 @@ export default function App() {
                 <Route path="/login" element={<LoginForm />} />
                 <Route path="/signup" element={<Signup />} />
                 <Route path="/question/:id" element={<OneQuestion />} />
-                <Route path="/:id" element={<ProfilePage />} />
+                <Route path="/:userId" element={<ProfilePage />} />
+                <Route path="/profile" element={<EditProfile />} />
+                <Route path="/admin/:id" element={<AdminPanel />} />
               </Routes>
               {/* <Routes>
                 <Route path="/" element={<Navigate to="/dashboard" />} />

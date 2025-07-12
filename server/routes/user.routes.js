@@ -7,5 +7,7 @@ router.post("/login", userController.login);
 router.get("/all", userController.getAllUsers);
 router.patch("/ban/:id", userController.banUser);
 router.patch("/unban/:id", userController.unbanUser);
+router.get('/profile/:userId', userController.getUserProfileData);
+
 
 module.exports = router;
