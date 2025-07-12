@@ -2,7 +2,8 @@ const User = require("../model/user.model");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { upload } = require("../middleware/upload.middleware.js");
-
+const Question = require("../model/question.model.js")
+const Answer = require("../model/answer.model.js")
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -39,6 +40,66 @@ const signup = (req, res) => {
     });
 };
 
+const getUserProfileData = async (req, res) => {
+    const { userId } = req.params;
+
+    try {
+        // 1. Get the user
+        const user = await User.findById(userId).select('-password');
+        if (!user) return res.status(404).json({ message: 'User not found' });
+
+        // 2. Get user's questions
+        const questions = await Question.find({ author: userId })
+            .populate('author', 'name avatar') // optional
+            .populate('acceptedAnswer')
+            .sort({ createdAt: -1 });
+
+        // 3. Get user's answers
+        const answers = await Answer.find({ author: userId })
+            .populate('question', 'title')
+            .sort({ createdAt: -1 });
+
+        // 4. Count totals
+        const totalQuestions = questions.length;
+        const totalAnswers = answers.length;
+
+        // 5. Count upvotes (on both questions and answers)
+        const questionUpvotes = questions.reduce((sum, q) => {
+            return sum + q.votes.filter(v => v.vote === 1).length;
+        }, 0);
+
+        const answerUpvotes = answers.reduce((sum, a) => {
+            return sum + a.votes.filter(v => v.vote === 1).length;
+        }, 0);
+
+        const upvotes = questionUpvotes + answerUpvotes;
+
+        // 6. Build response
+        res.status(200).json({
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                avatar: user.avatar,
+                joinDate: user.createdAt,
+                bio: '', // you can add this in schema if needed
+                location: '',
+                website: ''
+            },
+            stats: {
+                totalQuestions,
+                totalAnswers,
+                upvotes,
+            },
+            questions,
+            answers
+        });
+
+    } catch (err) {
+        console.error('Error in getUserProfileData:', err);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
 
 // Login controller
 const login = async (req, res) => {
@@ -127,5 +188,6 @@ module.exports = {
     getAllUsers,
     banUser,
     unbanUser,
-    getUserById
+    getUserById,
+    getUserProfileData
 };

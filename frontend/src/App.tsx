@@ -11,6 +11,7 @@ import AskQuestionPage from "./pages/AskQuestionPage"
 import OneQuestion from "./pages/OneQuestion"
 import ProfilePage from "./pages/ProfilePage"
 import { SocketProvider } from "./contexts/socketContext"
+import AdminPanel from "./pages/AdminPanel"
 
 export default function App() {
   return (
@@ -22,7 +23,9 @@ export default function App() {
               <SocketProvider>
                 <Routes>
                   <Route path="/" element={<Navigate to="/homepage" />} />
+                  <Route path="/admin" element={<AdminPanel />} />
                   <Route path="/homepage" element={<HomePage />} />
+                  <Route path="/profile/:userId" element={<ProfilePage />} />
                   <Route path="/ask" element={<AskQuestionPage />} />
                   <Route path="/login" element={<LoginForm />} />
                   <Route path="/signup" element={<Signup />} />

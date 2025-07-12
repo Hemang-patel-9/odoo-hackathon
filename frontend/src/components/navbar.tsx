@@ -38,6 +38,7 @@ const navItems = [
 ]
 
 export default function Navbar({ onMenuClick }: NavbarProps) {
+	const navigate = useNavigate();
 	const { theme, toggleTheme } = useTheme()
 	const { logout, user } = useAuth()
 	const router = useNavigate()
@@ -66,7 +67,7 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
 		};
 	}, [socket]);
 
-	const getNoficationsByUser = async (getUser:any) => {
+	const getNoficationsByUser = async (getUser: any) => {
 		const jsoncode = JSON.parse(getUser);
 		const resp = await fetch(`${import.meta.env.VITE_APP_API_URL}/notifications/user/${jsoncode?.id}`).then((res) => {
 			return res.json();
@@ -225,7 +226,9 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
 											<p className="font-semibold text-sm">{user?.name ?? "Guest"}</p>
 											<p className="text-xs text-muted-foreground">{user?.email ?? "example@gmail.com"}</p>
 										</div>
-										<DropdownMenuItem>
+										<DropdownMenuItem onClick={() => {
+											navigate(`/profile/${user?.id}`)
+										}}>
 											<User className="h-4 w-4 mr-2" />
 											Profile
 										</DropdownMenuItem>

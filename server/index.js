@@ -7,7 +7,7 @@ const userRoutes = require('./routes/user.routes.js')
 const questionRoutes = require('./routes/question.routes.js')
 const answerRoutes = require('./routes/answer.routes.js')
 const notificationRoutes = require('./routes/notification.routes.js')
-
+const adminRoute = require("./routes/admin.route.js");
 const { initializeSocket } = require('./socket.js');
 const { connectDB } = require('./connection.js');
 
@@ -34,7 +34,7 @@ app.use("/user", userRoutes);
 app.use("/questions", questionRoutes);
 app.use("/answers", answerRoutes);
 app.use("/notifications", notificationRoutes);
-
+app.use("/admin", adminRoute)
 connectDB();
 
 app.get('/', (req, res) => {
