@@ -13,12 +13,13 @@ import {
     Italic,
     List,
     Link2,
-    ImageIcon,
+    Image,
     AlignLeft,
     AlignCenter,
     AlignRight,
     Smile,
     Reply,
+    X,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
@@ -26,7 +27,7 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
-import { useNavigate } from "react-router-dom"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 
 const questionData = {
     id: 1,
@@ -215,15 +216,37 @@ export default function OneQuestion() {
     const [questionVotes, setQuestionVotes] = useState(questionData.votes)
     const [answerVotes, setAnswerVotes] = useState(answers.map((a) => a.votes))
     const [newAnswer, setNewAnswer] = useState("")
-    const navigate = useNavigate();
-    const handleQuestionVote = (direction: "up" | "down") => {
+    const [replyText, setReplyText] = useState("")
+    const [isReplyModalOpen, setIsReplyModalOpen] = useState(false)
+    const [replyingTo, setReplyingTo] = useState(null)
+
+    const handleQuestionVote = (direction: any) => {
         setQuestionVotes((prev) => (direction === "up" ? prev + 1 : prev - 1))
     }
 
-    const handleAnswerVote = (index: number, direction: "up" | "down") => {
+    const handleAnswerVote = (index: any, direction: any) => {
         setAnswerVotes((prev) =>
             prev.map((votes, i) => (i === index ? (direction === "up" ? votes + 1 : votes - 1) : votes)),
         )
+    }
+
+    const handleReplyClick = (type, id = null) => {
+        setReplyingTo({ type, id })
+        setIsReplyModalOpen(true)
+        setReplyText("")
+    }
+
+    const handleReplySubmit = () => {
+        // Handle reply submission logic here
+        console.log("Reply submitted:", replyText)
+        setIsReplyModalOpen(false)
+        setReplyText("")
+        setReplyingTo(null)
+    }
+
+    const navigate = (path: any) => {
+        // Mock navigation function
+        console.log("Navigate to:", path)
     }
 
     return (
@@ -232,9 +255,7 @@ export default function OneQuestion() {
             <header className="border-b border-gray-800 bg-foreground/10 backdrop-blur-sm">
                 <div className="container mx-auto px-4 py-4">
                     <div className="flex items-center space-x-4 text-foreground/60">
-                        <Button onClick={() => {
-                            navigate('/')
-                        }} variant="ghost" size="icon" className=" hover:bg-foreground/10">
+                        <Button onClick={() => navigate('/')} variant="ghost" size="icon" className=" hover:bg-foreground/10">
                             <ArrowLeft className="h-5 w-5" />
                         </Button>
                         <div className="flex-1">
@@ -299,7 +320,12 @@ export default function OneQuestion() {
                                                     <Share className="h-4 w-4 mr-2" />
                                                     Share
                                                 </Button>
-                                                <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
+                                                <Button
+                                                    onClick={() => handleReplyClick("question", questionData.id)}
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="text-gray-400 hover:text-white"
+                                                >
                                                     <Reply className="h-4 w-4 mr-2" />
                                                     Reply
                                                 </Button>
@@ -367,6 +393,15 @@ export default function OneQuestion() {
                                                                 <Share className="h-4 w-4 mr-2" />
                                                                 Share
                                                             </Button>
+                                                            <Button
+                                                                onClick={() => handleReplyClick("answer", answer.id)}
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                className="text-gray-400 hover:text-white"
+                                                            >
+                                                                <Reply className="h-4 w-4 mr-2" />
+                                                                Reply
+                                                            </Button>
                                                         </div>
 
                                                         <div className="flex items-center space-x-2 text-sm">
@@ -387,63 +422,82 @@ export default function OneQuestion() {
                                 ))}
                             </div>
                         </div>
-
-                        {/* Answer Form */}
-                        <Card className="bg-gray-900 border-gray-800">
-                            <CardContent className="p-6">
-                                <h3 className="text-xl font-semibold mb-4">Your Answer</h3>
-
-                                {/* Rich Text Editor Toolbar */}
-                                <div className="border border-gray-700 rounded-t-md bg-gray-800 p-2 mb-0">
-                                    <div className="flex flex-wrap gap-1">
-                                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                            <Bold className="h-4 w-4" />
-                                        </Button>
-                                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                            <Italic className="h-4 w-4" />
-                                        </Button>
-                                        <Separator orientation="vertical" className="h-6 mx-1" />
-                                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                            <List className="h-4 w-4" />
-                                        </Button>
-                                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                            <Link2 className="h-4 w-4" />
-                                        </Button>
-                                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                            <ImageIcon className="h-4 w-4" />
-                                        </Button>
-                                        <Separator orientation="vertical" className="h-6 mx-1" />
-                                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                            <AlignLeft className="h-4 w-4" />
-                                        </Button>
-                                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                            <AlignCenter className="h-4 w-4" />
-                                        </Button>
-                                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                            <AlignRight className="h-4 w-4" />
-                                        </Button>
-                                        <Separator orientation="vertical" className="h-6 mx-1" />
-                                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                            <Smile className="h-4 w-4" />
-                                        </Button>
-                                    </div>
-                                </div>
-
-                                <Textarea
-                                    placeholder="Write your answer here..."
-                                    value={newAnswer}
-                                    onChange={(e) => setNewAnswer(e.target.value)}
-                                    className="min-h-[200px] bg-gray-800 border-gray-700 border-t-0 rounded-t-none text-white placeholder-gray-400 resize-none"
-                                />
-
-                                <div className="flex justify-end mt-4">
-                                    <Button className="bg-blue-600 hover:bg-blue-700">Post Your Answer</Button>
-                                </div>
-                            </CardContent>
-                        </Card>
                     </div>
                 </div>
             </div>
+
+            {/* Reply Modal */}
+            <Dialog open={isReplyModalOpen} onOpenChange={setIsReplyModalOpen}>
+                <DialogContent className="bg-gray-900 border-gray-700 text-white max-w-2xl">
+                    <DialogHeader>
+                        <DialogTitle className="text-xl font-semibold">
+                            Reply to question
+                        </DialogTitle>
+                    </DialogHeader>
+
+                    <div className="space-y-4">
+                        {/* Rich Text Editor Toolbar for Reply */}
+                        <div className="border border-gray-700 rounded-t-md bg-gray-800 p-2 mb-0">
+                            <div className="flex flex-wrap gap-1">
+                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-gray-400 hover:text-white">
+                                    <Bold className="h-4 w-4" />
+                                </Button>
+                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-gray-400 hover:text-white">
+                                    <Italic className="h-4 w-4" />
+                                </Button>
+                                <Separator orientation="vertical" className="h-6 mx-1 bg-gray-600" />
+                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-gray-400 hover:text-white">
+                                    <List className="h-4 w-4" />
+                                </Button>
+                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-gray-400 hover:text-white">
+                                    <Link2 className="h-4 w-4" />
+                                </Button>
+                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-gray-400 hover:text-white">
+                                    <Image className="h-4 w-4" />
+                                </Button>
+                                <Separator orientation="vertical" className="h-6 mx-1 bg-gray-600" />
+                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-gray-400 hover:text-white">
+                                    <AlignLeft className="h-4 w-4" />
+                                </Button>
+                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-gray-400 hover:text-white">
+                                    <AlignCenter className="h-4 w-4" />
+                                </Button>
+                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-gray-400 hover:text-white">
+                                    <AlignRight className="h-4 w-4" />
+                                </Button>
+                                <Separator orientation="vertical" className="h-6 mx-1 bg-gray-600" />
+                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-gray-400 hover:text-white">
+                                    <Smile className="h-4 w-4" />
+                                </Button>
+                            </div>
+                        </div>
+
+                        <Textarea
+                            placeholder="Write your reply here..."
+                            value={replyText}
+                            onChange={(e) => setReplyText(e.target.value)}
+                            className="min-h-[150px] bg-gray-800 border-gray-700 border-t-0 rounded-t-none text-white placeholder-gray-400 resize-none"
+                        />
+
+                        <div className="flex justify-end space-x-3">
+                            <Button
+                                variant="outline"
+                                onClick={() => setIsReplyModalOpen(false)}
+                                className="border-gray-600 text-gray-300 hover:bg-gray-800"
+                            >
+                                Cancel
+                            </Button>
+                            <Button
+                                onClick={handleReplySubmit}
+                                className="bg-blue-600 hover:bg-blue-700"
+                                disabled={!replyText.trim()}
+                            >
+                                Post Reply
+                            </Button>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     )
 }
